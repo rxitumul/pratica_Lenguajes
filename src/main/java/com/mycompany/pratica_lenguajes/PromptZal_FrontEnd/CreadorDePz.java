@@ -5,9 +5,7 @@ import java.io.IOException;
 
 public class CreadorDePz {
     public void main() throws IOException {
-        String ruta = "'/Users/ricardocastillo/Documents/Prueba.pz";
-
-        FileWriter archivo = new FileWriter(ruta);
+        FileWriter archivo = new FileWriter("/Users/ricardocastillo/Documents/Prueba.pz");
 
         archivo.write("Hola mundo");
 
