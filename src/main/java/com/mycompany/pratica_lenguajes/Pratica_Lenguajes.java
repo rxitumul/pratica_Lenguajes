@@ -4,13 +4,27 @@
 
 package com.mycompany.pratica_lenguajes;
 
+import com.mycompany.pratica_lenguajes.PromptZal_FrontEnd.CreadorDePz;
+import com.mycompany.pratica_lenguajes.PromptZal_FrontEnd.MenuDeSelecion;
+
 /**
  *
  * @author ricardocastillo
  */
+
 public class Pratica_Lenguajes {
 
     public static void main(String[] args) {
-        System.out.println("Hello World!");
+
+        CreadorDePz crea = new CreadorDePz();
+        MenuDeSelecion menuDeSelecion = new MenuDeSelecion();
+
+        try {
+
+            crea.main();
+            menuDeSelecion.menuPrincipal();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
     }
 }
