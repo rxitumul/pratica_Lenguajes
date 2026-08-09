@@ -41,7 +41,7 @@ public class AnailizadorDeTexto {
         if (primerLetra == '@') {
             comparador = tokens.getDIRECTIVAS();
             for (int i = 0; i < comparador.length; i++) {
-
+                
             }
         }
 
