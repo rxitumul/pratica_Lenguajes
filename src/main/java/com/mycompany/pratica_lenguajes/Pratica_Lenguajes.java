@@ -4,7 +4,7 @@
 
 package com.mycompany.pratica_lenguajes;
 
-import com.mycompany.pratica_lenguajes.PromptZal_FrontEnd.CreadorDePz;
+import com.mycompany.pratica_lenguajes.PromptZal_BacEnd.MenuPrincipal;
 
 /**
  *
@@ -15,13 +15,7 @@ public class Pratica_Lenguajes {
 
     public static void main(String[] args) {
 
-        CreadorDePz crea = new CreadorDePz();
-
-        try {
-
-            crea.main();
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
+        MenuPrincipal menu = new MenuPrincipal();
+        menu.menuPrincipalInicio();
     }
 }

@@ -16,44 +16,38 @@ public class AnailizadorDeTexto {
     private PalabrasReservadasDeEstructuraAnalizador reservadasA = new PalabrasReservadasDeEstructuraAnalizador();
     private ConectoresAnalizador conectoresA = new ConectoresAnalizador();
     private ComandosDeIaAnalizador iaA = new ComandosDeIaAnalizador();
+    private ReporteDeError reportesError = new ReporteDeError();
 
     public void lector(String paht) {
 
-        int contadorDeFilas = 0;
-        int contadorDeColumnas = 0;
+        int contadorDeFilas = 1;
         try {
             lector = new BufferedReader(new FileReader(paht));
-            while (true) {
-                String lineaLeida = lector.readLine();
-                if (lineaLeida != null) {
-                    while (true) {
-                        char letra = lineaLeida.charAt(contadorDeColumnas);
-                        if (letra != ' ') {
-
-                        } else if (letra == 64) {
-                            contadorDeColumnas = directivas.analizador(contadorDeColumnas, contadorDeFilas, lineaLeida);
-
-                        } else if (letra >= 65 && letra <= 90) {
-                            contadorDeColumnas = analizadorComandosIaPalabrasReservadasConectores(contadorDeColumnas,
-                                    contadorDeFilas, lineaLeida);
-
-                        } else if (letra == 99 || letra == 118) {
-                            reservadasA.analizador(contadorDeColumnas, contadorDeFilas, lineaLeida);
-
-                        } else if (contadorDeColumnas == lineaLeida.length()) {
-                            break;
-                        } else {
-
-                        }
+            String lineaLeida;
+            while ((lineaLeida = lector.readLine()) != null) {
+                int contadorDeColumnas = 0;
+                while (contadorDeColumnas < lineaLeida.length()) {
+                    char letra = lineaLeida.charAt(contadorDeColumnas);
+                    if (letra == ' ') {
+                        contadorDeColumnas++;
+                    } else if (letra == '@') {
+                        contadorDeColumnas = directivas.analizador(contadorDeColumnas, contadorDeFilas, lineaLeida,
+                                reportesError);
+                    } else if (letra >= 65 && letra <= 90) {
+                        contadorDeColumnas = analizadorComandosIaPalabrasReservadasConectores(contadorDeColumnas,
+                                contadorDeFilas, lineaLeida);
+                    } else if (letra == 99 || letra == 118) {
+                        contadorDeColumnas = reservadasA.analizador(contadorDeColumnas, contadorDeFilas, lineaLeida,
+                                reportesError);
+                    } else {
                         contadorDeColumnas++;
                     }
-                    contadorDeFilas++;
-                }else {
-                    break;
                 }
+                contadorDeFilas++;
             }
+            reportesError.generarHTMLDeError("ReporteErrores.html");
         } catch (IOException e) {
-            // TODO: handle exception
+            System.err.println("Error al leer el archivo: " + e.getMessage());
         }
     }
 
@@ -63,7 +57,7 @@ public class AnailizadorDeTexto {
         String[] comandosDeIA = tokens.getCOMANDOS_DE_IA();
         String[] conectores = tokens.getCONECTORES();
         while (true) {
-            if (linea.charAt(columna) != ' ') {
+            if (columna < linea.length() && linea.charAt(columna) != ' ') {
                 columna++;
             } else {
                 break;
@@ -74,21 +68,21 @@ public class AnailizadorDeTexto {
 
         for (String conector : conectores) {
             if (conector.equals(palabra)) {
-                conectoresA.analizador(inicio, fila, linea);
+                conectoresA.analizador(inicio, fila, linea, reportesError);
                 return columna;
             }
         }
 
         for (String comando : comandosDeIA) {
             if (comando.equals(palabra)) {
-                iaA.analizador(inicio, fila, linea);
+                iaA.analizador(inicio, fila, linea, reportesError);
                 return columna;
             }
         }
 
         for (String resrvada : palabrasReservadasDeEstructura) {
             if (resrvada.equals(palabra)) {
-                reservadasA.analizador(inicio, fila, linea);
+                reservadasA.analizador(inicio, fila, linea, reportesError);
                 return columna;
             }
         }
