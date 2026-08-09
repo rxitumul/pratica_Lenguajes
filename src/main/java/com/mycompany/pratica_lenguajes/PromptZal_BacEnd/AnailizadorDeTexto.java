@@ -4,17 +4,23 @@ import java.io.BufferedReader;
 import java.io.FileReader;
 import java.io.IOException;
 
+import com.mycompany.pratica_lenguajes.PromptZal_BacEnd.TokensAnalizadores.ComandosDeIaAnalizador;
+import com.mycompany.pratica_lenguajes.PromptZal_BacEnd.TokensAnalizadores.ConectoresAnalizador;
+import com.mycompany.pratica_lenguajes.PromptZal_BacEnd.TokensAnalizadores.DirectivasAnalaizador;
+import com.mycompany.pratica_lenguajes.PromptZal_BacEnd.TokensAnalizadores.PalabrasReservadasDeEstructuraAnalizador;
+
 public class AnailizadorDeTexto {
     private BufferedReader lector;
     private BibliotecaDeTokens tokens = new BibliotecaDeTokens();
-    private ReporteDeError error = new ReporteDeError();
-    private ReporteHTMLTabla tabla = new ReporteHTMLTabla();
+    private DirectivasAnalaizador directivas = new DirectivasAnalaizador();
+    private PalabrasReservadasDeEstructuraAnalizador reservadasA = new PalabrasReservadasDeEstructuraAnalizador();
+    private ConectoresAnalizador conectoresA = new ConectoresAnalizador();
+    private ComandosDeIaAnalizador iaA = new ComandosDeIaAnalizador();
 
     public void lector(String paht) {
 
         int contadorDeFilas = 0;
         int contadorDeColumnas = 0;
-        boolean palabraVariada = false;
         try {
             lector = new BufferedReader(new FileReader(paht));
             while (true) {
@@ -25,53 +31,68 @@ public class AnailizadorDeTexto {
                         if (letra != ' ') {
 
                         } else if (letra == 64) {
-                            contadorDeColumnas = analizador(contadorDeColumnas, contadorDeFilas, lineaLeida);
-                        } else if (letra >= 65 && letra <= 90) {
+                            contadorDeColumnas = directivas.analizador(contadorDeColumnas, contadorDeFilas, lineaLeida);
 
-                        } else if (letra == 97) {
+                        } else if (letra >= 65 && letra <= 90) {
+                            contadorDeColumnas = analizadorComandosIaPalabrasReservadasConectores(contadorDeColumnas,
+                                    contadorDeFilas, lineaLeida);
 
                         } else if (letra == 99 || letra == 118) {
+                            reservadasA.analizador(contadorDeColumnas, contadorDeFilas, lineaLeida);
 
-                        } else if (palabraVariada) {
-
+                        } else if (contadorDeColumnas == lineaLeida.length()) {
+                            break;
                         } else {
 
                         }
                         contadorDeColumnas++;
                     }
+                    contadorDeFilas++;
+                }else {
+                    break;
                 }
-                contadorDeFilas++;
             }
         } catch (IOException e) {
             // TODO: handle exception
         }
     }
 
-    private int analizador(int columna, int fila, String letra) {
+    private int analizadorComandosIaPalabrasReservadasConectores(int columna, int fila, String linea) {
+        int inicio = columna;
+        String[] palabrasReservadasDeEstructura = tokens.getPALABRAS_RESERVADAS();
+        String[] comandosDeIA = tokens.getCOMANDOS_DE_IA();
+        String[] conectores = tokens.getCONECTORES();
         while (true) {
-            if (comprobadorDirectivas(columna, letra.charAt(columna))) {
+            if (linea.charAt(columna) != ' ') {
                 columna++;
-            } else if (letra.charAt(columna) != ' ') {
-                tabla.tablaDeDirectivas();
-                break;
             } else {
-                error.archivoHTMLDeError(fila, columna);
-                columna++;
+                break;
             }
-
         }
 
+        String palabra = linea.substring(inicio, columna);
+
+        for (String conector : conectores) {
+            if (conector.equals(palabra)) {
+                conectoresA.analizador(inicio, fila, linea);
+                return columna;
+            }
+        }
+
+        for (String comando : comandosDeIA) {
+            if (comando.equals(palabra)) {
+                iaA.analizador(inicio, fila, linea);
+                return columna;
+            }
+        }
+
+        for (String resrvada : palabrasReservadasDeEstructura) {
+            if (resrvada.equals(palabra)) {
+                reservadasA.analizador(inicio, fila, linea);
+                return columna;
+            }
+        }
         return columna;
     }
 
-    private boolean comprobadorDirectivas(int indice, char letra) {
-        String[] palbrasDeDirctivas = tokens.getDIRECTIVAS();
-        for (int i = 0; i < palbrasDeDirctivas.length; i++) {
-            if (palbrasDeDirctivas[i].charAt(indice) == letra) {
-                return true;
-            }
-        }
-        return false;
-
-    }
 }
