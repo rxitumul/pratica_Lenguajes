@@ -10,8 +10,10 @@ public class MenuPrincipal {
     public void menuPrincipalInicio() {
         String phat;
         MenuDeSelecion front = new MenuDeSelecion();
+        AnailizadorDeTexto analizador = new AnailizadorDeTexto();
         front.menuPrincipal();
         phat = scanner.nextLine();
+        analizador.lector(phat);
 
     }
 }
