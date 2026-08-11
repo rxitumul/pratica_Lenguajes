@@ -18,37 +18,39 @@ public class AnailizadorDeTexto {
     private ComandosDeIaAnalizador iaA = new ComandosDeIaAnalizador();
     private ReporteDeError reportesError = new ReporteDeError();
 
-    public void lector(String paht) {
+
+    
+    public void lector(String paht) throws IOException {
 
         int contadorDeFilas = 1;
-        try {
-            lector = new BufferedReader(new FileReader(paht));
-            String lineaLeida;
-            while ((lineaLeida = lector.readLine()) != null) {
-                int contadorDeColumnas = 0;
-                while (contadorDeColumnas < lineaLeida.length()) {
-                    char letra = lineaLeida.charAt(contadorDeColumnas);
-                    if (letra == ' ') {
-                        contadorDeColumnas++;
-                    } else if (letra == '@') {
-                        contadorDeColumnas = directivas.analizador(contadorDeColumnas, contadorDeFilas, lineaLeida,
-                                reportesError);
-                    } else if (letra >= 65 && letra <= 90) {
-                        contadorDeColumnas = analizadorComandosIaPalabrasReservadasConectores(contadorDeColumnas,
-                                contadorDeFilas, lineaLeida);
-                    } else if (letra == 99 || letra == 118) {
-                        contadorDeColumnas = reservadasA.analizador(contadorDeColumnas, contadorDeFilas, lineaLeida,
-                                reportesError);
-                    } else {
-                        contadorDeColumnas++;
-                    }
+        lector = new BufferedReader(new FileReader(paht));
+        String lineaLeida;
+        while ((lineaLeida = lector.readLine()) != null) {
+            int contadorDeColumnas = 0;
+            while (contadorDeColumnas < lineaLeida.length()) {
+                char letra = lineaLeida.charAt(contadorDeColumnas);
+                if (letra == ' ') {
+                    contadorDeColumnas++;
+                } else if (letra == '@') {
+                    contadorDeColumnas = directivas.analizador(contadorDeColumnas, contadorDeFilas, lineaLeida,
+                            reportesError);
+                } else if (letra >= 65 && letra <= 90) {
+
+                    contadorDeColumnas = analizadorComandosIaPalabrasReservadasConectores(contadorDeColumnas,
+                            contadorDeFilas, lineaLeida);
+
+                } else if (letra == 99 || letra == 118) {
+                    contadorDeColumnas = reservadasA.analizador(contadorDeColumnas, contadorDeFilas, lineaLeida,
+                            reportesError);
+
+                } else {
+
+                    contadorDeColumnas++;
                 }
-                contadorDeFilas++;
             }
-            reportesError.generarHTMLDeError("ReporteErrores.html");
-        } catch (IOException e) {
-            System.err.println("Error al leer el archivo: " + e.getMessage());
+            contadorDeFilas++;
         }
+        reportesError.generarHTMLDeError("ReporteErrores.html");
     }
 
     private int analizadorComandosIaPalabrasReservadasConectores(int columna, int fila, String linea) {
@@ -89,4 +91,7 @@ public class AnailizadorDeTexto {
         return columna;
     }
 
+    public BufferedReader getArchivoLectura(){
+        return lector;
+    }
 }
