@@ -96,7 +96,7 @@ public class PalabrasReservadasDeEstructuraAnalizador extends Analizador {
             columna++;
         }
         if (columna < linea.length() && linea.charAt(columna) == '=') {
-            columna++; // consumir '='
+            columna++;
         } else {
             reportesError.registrarError(
                     new ErrorLexico("", "Se esperaba '=' después de 'contexto'", fila, columna));
