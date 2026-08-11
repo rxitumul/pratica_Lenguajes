@@ -35,7 +35,7 @@ public class AnailizadorDeTexto {
                     contadorDeColumnas++;
                 } else if (letra == '@') {
                     contadorDeColumnas = directivas.analizador(contadorDeColumnas, contadorDeFilas, lineaLeida,
-                            reportesError, file,true);
+                            reportesError, file, true);
                 } else if ((letra >= 65 && letra <= 90) || letra == 'c' || letra == 'v') {
                     // Leer la palabra completa para decidir el analizador correcto
                     contadorDeColumnas = analizadorComandosIaPalabrasReservadasConectores(contadorDeColumnas,

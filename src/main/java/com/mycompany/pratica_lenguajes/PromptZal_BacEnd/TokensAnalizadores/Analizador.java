@@ -18,24 +18,28 @@ public abstract class Analizador {
     protected int contadorDeIndices = 0;
     private File fileLocal;
 
-    public int analizador(int columna, int fila, String linea, ReporteDeError reportesError, File file)
+    public int analizador(int columna, int fila, String linea, ReporteDeError reportesError, File file,boolean verdadError)
             throws IOException {
         this.reportesError = reportesError;
         int inicio = columna;
         fileLocal = file;
 
-        columna= concatenadorDePalabaras(columna, linea);
+        columna = concatenadorDePalabaras(columna, linea);
         String palabra = linea.substring(inicio, columna);
 
         if (esDirectivaValida(palabra)) {
             tabla.tablaDeTokens();
             columna = condicion(columna, fila, linea, file);
-        } else {
+        } else if (verdadError) {
             error = new ErrorLexico(palabra, "Token no válida o no encontrada", fila, inicio);
             reportesError.registrarError(error);
+        }else{
+            return -1;
         }
         return columna;
     }
+
+
 
     protected boolean esDirectivaValida(String palabra) {
         contadorDeIndices = 0; // Reiniciar antes de cada búsqueda
