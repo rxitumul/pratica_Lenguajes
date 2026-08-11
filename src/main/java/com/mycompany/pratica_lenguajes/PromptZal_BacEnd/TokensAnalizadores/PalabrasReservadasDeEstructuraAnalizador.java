@@ -1,23 +1,18 @@
 package com.mycompany.pratica_lenguajes.PromptZal_BacEnd.TokensAnalizadores;
 
-import java.io.BufferedReader;
 import java.io.File;
-import java.io.FileReader;
 import java.io.IOException;
 
 import com.mycompany.pratica_lenguajes.PromptZal_BacEnd.Errores.ErrorLexico;
 
 public class PalabrasReservadasDeEstructuraAnalizador extends Analizador {
     private String palabraDeAgente;
-    private File fileLocal;
+    private String variable;
 
     @Override
     protected int condicion(int columna, int fila, String linea, File file) throws IOException {
-        fileLocal = file;
         // Saltar espacios previos
-        while (columna < linea.length() && linea.charAt(columna) == ' ') {
-            columna++;
-        }
+        columna = saltadorDeespacios(columna, linea);
 
         switch (contadorDeIndices) {
             case 0: // AGENTE - espera un identificador a continuación
@@ -27,7 +22,7 @@ public class PalabrasReservadasDeEstructuraAnalizador extends Analizador {
                 columna = leerPalabraContexto(columna, fila, linea, "valor de contexto");
                 break;
             case 2: // variable - espera nombre y valor
-                columna = leerPalabraVariable(columna, fila, linea, "nombre de variable");
+                columna = leerPalabraVariable(columna, fila, linea, "nombre de variable", file);
                 break;
             case 3: // EJECUTAR - espera un comando o bloque
                 columna = leerPalabraEjecucion(columna, fila, linea, "bloque de ejecución");
@@ -44,59 +39,37 @@ public class PalabrasReservadasDeEstructuraAnalizador extends Analizador {
 
     private int leerPalabraAgente(int columna, int fila, String linea, String contexto) throws IOException {
         int inicio = columna;
-        int filaFile2 = 0;
-        int contadorColumna2 = 0;
-        try (BufferedReader lector = new BufferedReader(new FileReader(fileLocal))) {
-            while (columna < linea.length() && linea.charAt(columna) != ' ') {
-                columna++;
-            }
-            if (columna == inicio) {
+
+        columna = saltadorDeespacios(columna, linea);
+
+        if (columna == inicio) {
+            reportesError.registrarError(
+                    new ErrorLexico("", "Se esperaba " + contexto + " después de la palabra reservada", fila,
+                            columna));
+            return columna;
+        } else {
+            palabraDeAgente = linea.substring(inicio, columna);
+            if (linea.charAt(columna) != '{') {
                 reportesError.registrarError(
-                        new ErrorLexico("", "Se esperaba " + contexto + " después de la palabra reservada", fila,
-                                columna));
+                        new ErrorLexico("", "Se esperaba '{' después del identificador de agente", fila, columna));
                 return columna;
             } else {
-                palabraDeAgente = linea.substring(inicio, columna);
-                if (linea.charAt(columna) != '{') {
-                    reportesError.registrarError(
-                            new ErrorLexico("", "Se esperaba '{' después del identificador de agente", fila, columna));
-                    return columna;
-                } else {
-                    columna++;
-                    while (true) {
-                        if (filaFile2 != fila) {
-                            lector.readLine();
-                            filaFile2++;
-                        } else {
-                            break;
-                        }
-                    }
-                    String lineaLeida = "";
-                    while ((lineaLeida = lector.readLine()) != null) {
-                        contadorColumna2 = 0;
-                        while (contadorColumna2 < lineaLeida.length()) {
-                            if (lineaLeida.charAt(contadorColumna2) == '}') {
-                                return columna;
-                            }
-                            contadorColumna2++;
-                        }
-                    }
-                    reportesError.registrarError(
-                            new ErrorLexico("", "Se esperaba '}' después de abrir un bloque del agente", fila,
-                                    columna));
-                }
+                columna = verificadorDeCierre(columna, fila, '}');
             }
+
         }
+
         return columna;
     }
 
     private int leerPalabraContexto(int columna, int fila, String linea, String contexto) throws IOException {
         // Saltar espacios
-        while (columna < linea.length() && linea.charAt(columna) == ' ') {
-            columna++;
-        }
+        columna = saltadorDeespacios(columna, linea);
+
         if (columna < linea.length() && linea.charAt(columna) == '=') {
             columna++;
+            columna = lectorDeComillas(columna, fila, linea);
+            columna = verificadorDeCierre(columna, fila, '"');
         } else {
             reportesError.registrarError(
                     new ErrorLexico("", "Se esperaba '=' después de 'contexto'", fila, columna));
@@ -104,9 +77,32 @@ public class PalabrasReservadasDeEstructuraAnalizador extends Analizador {
         return columna;
     }
 
-    private int leerPalabraVariable(int columna, int fila, String linea, String contexto) throws IOException {
+    private int leerPalabraVariable(int columna, int fila, String linea, String contexto, File file)
+            throws IOException {
+        int columnaTemporal;
+        columna = saltadorDeespacios(columna, linea);
+        while (true) {
 
-        return columna;
+            if (columna < linea.length() && linea.charAt(columna) == '=') {
+                columnaTemporal = analizador(columna, fila, linea, reportesError, file, false);
+                if (columnaTemporal != -1) {
+                    return columnaTemporal;
+                } else {
+                    columna = lectorDeComillas(columna, fila, linea);
+                    columna = verificadorDeCierre(columna, fila, '"');
+                    return columna;
+                }
+            } else if (columna == linea.length()) {
+
+                return columna;
+
+            } else {
+                int inicio = columna;
+                columna = concatenadorDePalabaras(columna, linea);
+                variable = linea.substring(inicio, columna);
+            }
+
+        }
     }
 
     private int leerPalabraEjecucion(int columna, int fila, String linea, String contexto) throws IOException {

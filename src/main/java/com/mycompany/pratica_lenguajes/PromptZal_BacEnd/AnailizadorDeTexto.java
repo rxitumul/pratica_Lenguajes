@@ -35,7 +35,7 @@ public class AnailizadorDeTexto {
                     contadorDeColumnas++;
                 } else if (letra == '@') {
                     contadorDeColumnas = directivas.analizador(contadorDeColumnas, contadorDeFilas, lineaLeida,
-                            reportesError, file);
+                            reportesError, file,true);
                 } else if ((letra >= 65 && letra <= 90) || letra == 'c' || letra == 'v') {
                     // Leer la palabra completa para decidir el analizador correcto
                     contadorDeColumnas = analizadorComandosIaPalabrasReservadasConectores(contadorDeColumnas,
@@ -70,19 +70,19 @@ public class AnailizadorDeTexto {
 
         for (String conector : conectores) {
             if (conector.equals(palabra)) {
-                return conectoresA.analizador(inicio, fila, linea, reportesError, file);
+                return conectoresA.analizador(inicio, fila, linea, reportesError, file, true);
             }
         }
 
         for (String comando : comandosDeIA) {
             if (comando.equals(palabra)) {
-                return iaA.analizador(inicio, fila, linea, reportesError, file);
+                return iaA.analizador(inicio, fila, linea, reportesError, file, true);
             }
         }
 
         for (String resrvada : palabrasReservadasDeEstructura) {
             if (resrvada.equals(palabra)) {
-                return reservadasA.analizador(inicio, fila, linea, reportesError, file);
+                return reservadasA.analizador(inicio, fila, linea, reportesError, file, true);
             }
         }
 
