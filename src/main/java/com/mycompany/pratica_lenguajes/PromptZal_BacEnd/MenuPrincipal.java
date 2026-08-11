@@ -22,10 +22,12 @@ public class MenuPrincipal {
                 if (!scanner.nextLine().equals("s")) {
                     break;
                 }
-                
+
             } catch (IOException e) {
                 System.out.println("No se pudo encontrar el archivo vuelva a intentar ");
                 e.printStackTrace();
+            } finally {
+
             }
         }
 
