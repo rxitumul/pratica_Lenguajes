@@ -7,12 +7,6 @@ import com.mycompany.pratica_lenguajes.PromptZal_BacEnd.Errores.ErrorLexico;
 
 public class ComandosDeIaAnalizador extends Analizador {
 
-    // Los comandos de IA (PREGUNTAR, GENERAR, RESUMIR, etc.) siempre van
-    // seguidos de una expresión: un texto, un identificador o una función.
-    // Ejemplo:
-    // PREGUNTAR "¿Cuáles son las tendencias?" → argumento es un texto
-    // GENERAR codigo → argumento es un identificador
-    // CARGAR("ventas.csv") → argumento es una función
     @Override
     protected int condicion(int contadorDeColumnas, int contadorDeFilas, String lineaLeida, File archivo)
             throws IOException {

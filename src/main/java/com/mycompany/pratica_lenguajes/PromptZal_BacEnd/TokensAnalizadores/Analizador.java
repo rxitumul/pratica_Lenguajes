@@ -91,8 +91,8 @@ public abstract class Analizador {
     public String leerPalabra(String linea, int columna) {
         int inicio = columna;
         while (columna < linea.length()) {
-            char c = linea.charAt(columna);
-            if (Character.isLetterOrDigit(c) || c == '_' || c == '-') {
+            char columnasLocales = linea.charAt(columna);
+            if (Character.isLetterOrDigit(columnasLocales) || columnasLocales == '_' || columnasLocales == '-') {
                 columna++;
             } else {
                 break;
@@ -196,20 +196,21 @@ public abstract class Analizador {
 
     // Verifica si una palabra es parte del vocabulario reservado de ZAL
     protected boolean esPalabraClave(String token) {
-        for (String d : tokens.getDIRECTIVAS()) {
-            if (d.equals(token))
+        for (String directivaAnalizar : tokens.getDIRECTIVAS()) {
+            if (directivaAnalizar.equals(token))
+
                 return true;
         }
-        for (String p : tokens.getPALABRAS_RESERVADAS()) {
-            if (p.equals(token))
+        for (String palabraReservadaAnalizar : tokens.getPALABRAS_RESERVADAS()) {
+            if (palabraReservadaAnalizar.equals(token))
                 return true;
         }
-        for (String c : tokens.getCOMANDOS_DE_IA()) {
-            if (c.equals(token))
+        for (String comandoDeIaAnalizar : tokens.getCOMANDOS_DE_IA()) {
+            if (comandoDeIaAnalizar.equals(token))
                 return true;
         }
-        for (String cn : tokens.getCONECTORES()) {
-            if (cn.equals(token))
+        for (String conectorAnalizar : tokens.getCONECTORES()) {
+            if (conectorAnalizar.equals(token))
                 return true;
         }
         return false;

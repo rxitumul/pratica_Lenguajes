@@ -33,7 +33,7 @@ public class AnailizadorDeTexto {
         int contadorDeCierreFila = 0;
         while ((lineaLeida = lector.readLine()) != null) {
             int contadorDeColumnas = 0;
-            while (contadorDeColumnas < lineaLeida.length()) {
+            while (contadorDeColumnas < lineaLeida.length() && contadorDeCierreFila < contadorDeFilas) {
                 // Saltar espacios/tabs iniciales
                 contadorDeColumnas = directivas.saltarEspacios(lineaLeida, contadorDeColumnas);
                 if (contadorDeColumnas >= lineaLeida.length()) {
@@ -54,19 +54,18 @@ public class AnailizadorDeTexto {
                     int contadorDeColumnasBloques = contadorDeColumnas;
                     while ((lineaLeida = lector.readLine()) != null) {
                         while (contadorDeColumnasBloques < lineaLeida.length()) {
-
-                            char end = lineaLeida.charAt(contadorDeColumnasBloques);
-
-                            if (end != -1) {
-                                contadorDeColumnas = end + 2;
-                                continue;
-                            } else {
+                            if (lineaLeida.charAt(contadorDeColumnasBloques) == '*'
+                                    && contadorDeColumnasBloques + 1 < lineaLeida.length()
+                                    && lineaLeida.charAt(contadorDeColumnasBloques + 1) == '/') {
                                 break;
                             }
-
+                            contadorDeColumnasBloques++;
                         }
                         contadorDeColumnasBloques = 0;
                         contadorDeCierreFila++;
+                    }
+                    if (contadorDeCierreFila > contadorDeFilas) {
+                        break;
                     }
                 }
 
