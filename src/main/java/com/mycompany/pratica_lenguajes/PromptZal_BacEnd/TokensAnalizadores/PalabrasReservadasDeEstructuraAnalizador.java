@@ -6,8 +6,8 @@ import java.io.IOException;
 import com.mycompany.pratica_lenguajes.PromptZal_BacEnd.Errores.ErrorLexico;
 
 public class PalabrasReservadasDeEstructuraAnalizador extends Analizador {
-    private String palabraDeAgente;
-    private String variable;
+    private String[] palabraDeAgente;
+    private String[] variable;
 
     @Override
     protected int condicion(int columna, int fila, String linea, File file) throws IOException {
@@ -38,25 +38,39 @@ public class PalabrasReservadasDeEstructuraAnalizador extends Analizador {
     }
 
     private int leerPalabraAgente(int columna, int fila, String linea, String contexto) throws IOException {
-        int inicio = columna;
-
+        // Saltar espacios antes del identificador
+        int antesDeEspacio = columna;
         columna = saltadorDeespacios(columna, linea);
 
-        if (columna == inicio) {
+        if (columna == antesDeEspacio) {
+            // No hubo espacio: no hay identificador
             reportesError.registrarError(
                     new ErrorLexico("", "Se esperaba " + contexto + " después de la palabra reservada", fila,
                             columna));
             return columna;
         } else {
-            palabraDeAgente = linea.substring(inicio, columna);
-            if (linea.charAt(columna) != '{') {
+            // Leer el nombre del agente
+            int inicio = columna;
+            columna = concatenadorDePalabaras(columna, linea);
+            String nombreAgente = linea.substring(inicio, columna);
+
+            palabraDeAgente = ampliador(palabraDeAgente);
+            for (int i = 0; i < palabraDeAgente.length; i++) {
+                if (palabraDeAgente[i] == null) {
+                    palabraDeAgente[i] = nombreAgente;
+                    break;
+                }
+            }
+
+            columna = saltadorDeespacios(columna, linea);
+
+            if (columna >= linea.length() || linea.charAt(columna) != '{') {
                 reportesError.registrarError(
                         new ErrorLexico("", "Se esperaba '{' después del identificador de agente", fila, columna));
                 return columna;
             } else {
                 columna = verificadorDeCierre(columna, fila, '}');
             }
-
         }
 
         return columna;
@@ -99,14 +113,32 @@ public class PalabrasReservadasDeEstructuraAnalizador extends Analizador {
             } else {
                 int inicio = columna;
                 columna = concatenadorDePalabaras(columna, linea);
-                variable = linea.substring(inicio, columna);
+                variable = ampliador(variable);
+                for (int i = 0; i < variable.length; i++) {
+                    if (variable[i] == null) {
+                        variable[i] = linea.substring(inicio, columna);
+                    }
+                }
             }
 
         }
     }
 
     private int leerPalabraEjecucion(int columna, int fila, String linea, String contexto) throws IOException {
-
+        columna = saltadorDeespacios(columna, linea);
+        int inicio = columna;
+        columna = concatenadorDePalabaras(columna, linea);
+        String palabraAEjecutar = linea.substring(inicio, columna);
+        boolean verificadorDePalabra=false;
+        for (String string : palabraDeAgente) {
+            if (palabraAEjecutar.equals(string)) {
+                verificadorDePalabra = true;
+            }
+        }
+        if (!verificadorDePalabra){
+            reportesError.registrarError(
+                    new ErrorLexico("", "Se esperaba que declarara la variable", fila, columna));
+        }
         return columna;
     }
 
@@ -117,6 +149,25 @@ public class PalabrasReservadasDeEstructuraAnalizador extends Analizador {
 
     protected String[] token() {
         return tokens.getPALABRAS_RESERVADAS();
+    }
+
+    private String[] ampliador(String[] areglo) {
+        // Bug fix #2: verificar null antes de acceder a .length
+        if (areglo != null && areglo.length != 0) {
+            int tamañoTemp = areglo.length;
+            String[] temp = new String[tamañoTemp];
+            for (int i = 0; i < tamañoTemp; i++) {
+                temp[i] = areglo[i];
+            }
+            // Bug fix #5: el loop solo copia hasta tamañoTemp (el último queda null)
+            areglo = new String[tamañoTemp + 1];
+            for (int i = 0; i < tamañoTemp; i++) {
+                areglo[i] = temp[i];
+            }
+        } else {
+            areglo = new String[1];
+        }
+        return areglo;
     }
 
 }

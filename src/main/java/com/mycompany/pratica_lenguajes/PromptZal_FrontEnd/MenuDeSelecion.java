@@ -11,7 +11,7 @@ public class MenuDeSelecion {
         confi.separadorDeLineas();
         System.out.println(confi.formatear("PromptZal"));
         confi.separadorDeLineas();
-        System.out.println(confi.formatear("Porfavor de ingresasr la ruta del archivo a analizar"));
+        System.out.println(confi.formatear("Porfavor de ingresar la ruta del archivo a analizar"));
         System.out.println(confi.formatear("Ejemplo: /Users/ricardocastillo/Documents/Prueba.pz"));
         confi.separadorDeLineas();
     }

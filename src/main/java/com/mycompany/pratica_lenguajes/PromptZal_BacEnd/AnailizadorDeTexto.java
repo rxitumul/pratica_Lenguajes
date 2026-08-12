@@ -40,6 +40,11 @@ public class AnailizadorDeTexto {
                     // Leer la palabra completa para decidir el analizador correcto
                     contadorDeColumnas = analizadorComandosIaPalabrasReservadasConectores(contadorDeColumnas,
                             contadorDeFilas, lineaLeida);
+                } else if (letra == '-' && contadorDeColumnas + 1 < lineaLeida.length()
+                        && lineaLeida.charAt(contadorDeColumnas + 1) == '>') {
+                    // Bug fix #1: detectar el conector '->' que empieza con '-'
+                    contadorDeColumnas = analizadorComandosIaPalabrasReservadasConectores(contadorDeColumnas,
+                            contadorDeFilas, lineaLeida);
                 } else {
                     // Carácter no reconocido como inicio de token: saltar la palabra completa
                     while (contadorDeColumnas < lineaLeida.length() && lineaLeida.charAt(contadorDeColumnas) != ' ') {
