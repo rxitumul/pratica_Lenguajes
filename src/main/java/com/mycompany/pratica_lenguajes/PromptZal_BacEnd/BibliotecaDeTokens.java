@@ -5,7 +5,7 @@ public class BibliotecaDeTokens {
     private final String[] DIRECTIVAS = { "@modelo", "@rol", "@formato" };
     private final String[] PALABRAS_RESERVADAS = { "AGENTE", "contexto", "variable", "EJECUTAR", "EXPORTAR" };
     private final String[] COMANDOS_DE_IA = { "PREGUNTAR", "GENERAR", "RESUMIR", "ANALIZAR", "TRADUCIR", "CLASIFICAR",
-            "EXTRAER" };
+            "EXTRAER", "CARGAR" };
     private final String[] CONECTORES = { "SOBRE", "DESDE", "EN", "COMO", "->" };
     private final String[] IDENTIFICADORES = { "_" };
     private final String[] OPERADORES_LITERALES_COMENTARIOS = { "=", "+", "...", "analista", "//", "/* */" };

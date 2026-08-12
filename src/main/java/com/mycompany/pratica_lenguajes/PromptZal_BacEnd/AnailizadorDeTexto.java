@@ -6,6 +6,7 @@ import java.io.FileReader;
 import java.io.IOException;
 
 import com.mycompany.pratica_lenguajes.PromptZal_BacEnd.Errores.ErrorLexico;
+import com.mycompany.pratica_lenguajes.PromptZal_BacEnd.TokensAnalizadores.Analizador;
 import com.mycompany.pratica_lenguajes.PromptZal_BacEnd.TokensAnalizadores.ComandosDeIaAnalizador;
 import com.mycompany.pratica_lenguajes.PromptZal_BacEnd.TokensAnalizadores.ConectoresAnalizador;
 import com.mycompany.pratica_lenguajes.PromptZal_BacEnd.TokensAnalizadores.DirectivasAnalaizador;
@@ -22,7 +23,7 @@ public class AnailizadorDeTexto {
     private File file;
 
     public void lector(String paht) throws IOException {
-
+        Analizador.limpiarDeclaraciones();
         int contadorDeFilas = 1;
         file = new File(paht);
         lector = new BufferedReader(new FileReader(file));
@@ -30,26 +31,76 @@ public class AnailizadorDeTexto {
         while ((lineaLeida = lector.readLine()) != null) {
             int contadorDeColumnas = 0;
             while (contadorDeColumnas < lineaLeida.length()) {
+                // Saltar espacios/tabs iniciales
+                contadorDeColumnas = directivas.saltarEspacios(lineaLeida, contadorDeColumnas);
+                if (contadorDeColumnas >= lineaLeida.length()) {
+                    break;
+                }
+
                 char letra = lineaLeida.charAt(contadorDeColumnas);
-                if (letra == ' ') {
+
+                // 1. Descartar comentarios
+                if (letra == '/' && contadorDeColumnas + 1 < lineaLeida.length()
+                        && lineaLeida.charAt(contadorDeColumnas + 1) == '/') {
+                    break; // Ignorar el resto de la línea
+                }
+                if (letra == '/' && contadorDeColumnas + 1 < lineaLeida.length()
+                        && lineaLeida.charAt(contadorDeColumnas + 1) == '*') {
+                    int end = lineaLeida.indexOf("*/", contadorDeColumnas + 2);
+                    if (end != -1) {
+                        contadorDeColumnas = end + 2;
+                        continue;
+                    } else {
+                        break;
+                    }
+                }
+
+                // 2. Delimitadores estructurales
+                if (letra == '{' || letra == '}') {
                     contadorDeColumnas++;
-                } else if (letra == '@') {
+                    continue;
+                }
+
+                // 3. Leer la palabra o token actual
+                String token = "";
+                if (letra == '@' || (letra == '-' && contadorDeColumnas + 1 < lineaLeida.length()
+                        && lineaLeida.charAt(contadorDeColumnas + 1) == '>')) {
+                    if (letra == '@') {
+                        token = directivas.leerDirectivaOConector(lineaLeida, contadorDeColumnas);
+                    } else {
+                        token = "->";
+                    }
+                } else {
+                    token = directivas.leerPalabra(lineaLeida, contadorDeColumnas);
+                }
+
+                if (token.isEmpty()) {
+                    // Si no es una palabra, podría ser un operador suelto no reconocido en este
+                    // nivel
+                    reportesError.registrarError(new ErrorLexico(String.valueOf(letra),
+                            "Caracter no reconocido o fuera de contexto", contadorDeFilas, contadorDeColumnas));
+                    contadorDeColumnas++;
+                    continue;
+                }
+
+                // 4. Distribuir el token de acuerdo a su tipo
+                if (token.startsWith("@")) {
                     contadorDeColumnas = directivas.analizador(contadorDeColumnas, contadorDeFilas, lineaLeida,
                             reportesError, file, true);
-                } else if ((letra >= 65 && letra <= 90) || letra == 'c' || letra == 'v') {
-                    // Leer la palabra completa para decidir el analizador correcto
-                    contadorDeColumnas = analizadorComandosIaPalabrasReservadasConectores(contadorDeColumnas,
-                            contadorDeFilas, lineaLeida);
-                } else if (letra == '-' && contadorDeColumnas + 1 < lineaLeida.length()
-                        && lineaLeida.charAt(contadorDeColumnas + 1) == '>') {
-                    // Bug fix #1: detectar el conector '->' que empieza con '-'
-                    contadorDeColumnas = analizadorComandosIaPalabrasReservadasConectores(contadorDeColumnas,
-                            contadorDeFilas, lineaLeida);
+                } else if (esConector(token)) {
+                    contadorDeColumnas = conectoresA.analizador(contadorDeColumnas, contadorDeFilas, lineaLeida,
+                            reportesError, file, true);
+                } else if (esComandoIA(token)) {
+                    contadorDeColumnas = iaA.analizador(contadorDeColumnas, contadorDeFilas, lineaLeida,
+                            reportesError, file, true);
+                } else if (esPalabraReservada(token)) {
+                    contadorDeColumnas = reservadasA.analizador(contadorDeColumnas, contadorDeFilas, lineaLeida,
+                            reportesError, file, true);
                 } else {
-                    // Carácter no reconocido como inicio de token: saltar la palabra completa
-                    while (contadorDeColumnas < lineaLeida.length() && lineaLeida.charAt(contadorDeColumnas) != ' ') {
-                        contadorDeColumnas++;
-                    }
+                    // Token no reconocido en el nivel superior (ej. variables sueltas sin comando)
+                    reportesError.registrarError(new ErrorLexico(token,
+                            "Instruccion o token no reconocido en este contexto", contadorDeFilas, contadorDeColumnas));
+                    contadorDeColumnas += token.length();
                 }
             }
             contadorDeFilas++;
@@ -57,43 +108,28 @@ public class AnailizadorDeTexto {
         reportesError.generarHTMLDeError("ReporteErrores.html");
     }
 
-    private int analizadorComandosIaPalabrasReservadasConectores(int columna, int fila, String linea)
-            throws IOException {
-        int inicio = columna;
-        String[] palabrasReservadasDeEstructura = tokens.getPALABRAS_RESERVADAS();
-        String[] comandosDeIA = tokens.getCOMANDOS_DE_IA();
-        String[] conectores = tokens.getCONECTORES();
-        while (true) {
-            if (columna < linea.length() && linea.charAt(columna) != ' ') {
-                columna++;
-            } else {
-                break;
-            }
+    private boolean esConector(String token) {
+        for (String c : tokens.getCONECTORES()) {
+            if (c.equals(token))
+                return true;
         }
+        return false;
+    }
 
-        String palabra = linea.substring(inicio, columna);
-
-        for (String conector : conectores) {
-            if (conector.equals(palabra)) {
-                return conectoresA.analizador(inicio, fila, linea, reportesError, file, true);
-            }
+    private boolean esComandoIA(String token) {
+        for (String c : tokens.getCOMANDOS_DE_IA()) {
+            if (c.equals(token))
+                return true;
         }
+        return false;
+    }
 
-        for (String comando : comandosDeIA) {
-            if (comando.equals(palabra)) {
-                return iaA.analizador(inicio, fila, linea, reportesError, file, true);
-            }
+    private boolean esPalabraReservada(String token) {
+        for (String p : tokens.getPALABRAS_RESERVADAS()) {
+            if (p.equals(token))
+                return true;
         }
-
-        for (String resrvada : palabrasReservadasDeEstructura) {
-            if (resrvada.equals(palabra)) {
-                return reservadasA.analizador(inicio, fila, linea, reportesError, file, true);
-            }
-        }
-
-        // La palabra no coincide con ningún token conocido: error léxico
-        reportesError.registrarError(new ErrorLexico(palabra, "Token no reconocido", fila, inicio));
-        return columna;
+        return false;
     }
 
     public BufferedReader getArchivoLectura() {

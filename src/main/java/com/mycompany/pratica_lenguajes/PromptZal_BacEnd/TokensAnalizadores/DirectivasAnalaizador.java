@@ -7,13 +7,11 @@ public class DirectivasAnalaizador extends Analizador {
 
     @Override
     protected int condicion(int columna, int fila, String linea, File file) throws IOException {
-        // Bug fix #4: capturar el resultado de lectorDeComillas para avanzar la columna
-        columna = lectorDeComillas(columna, fila, linea);
-        return verificadorDeCierre(columna, fila, '"');
+        columna = saltarEspacios(linea, columna);
+        return lectorDeComillas(columna, fila, linea);
     }
 
     protected String[] token() {
         return tokens.getDIRECTIVAS();
     }
-
 }

@@ -2,17 +2,13 @@ package com.mycompany.pratica_lenguajes.PromptZal_BacEnd.TokensAnalizadores;
 
 import java.io.File;
 import java.io.IOException;
-
 import com.mycompany.pratica_lenguajes.PromptZal_BacEnd.Errores.ErrorLexico;
 
 public class PalabrasReservadasDeEstructuraAnalizador extends Analizador {
-    private String[] palabraDeAgente;
-    private String[] variable;
 
     @Override
     protected int condicion(int columna, int fila, String linea, File file) throws IOException {
-        // Saltar espacios previos
-        columna = saltadorDeespacios(columna, linea);
+        columna = saltarEspacios(linea, columna);
 
         switch (contadorDeIndices) {
             case 0: // AGENTE - espera un identificador a continuación
@@ -38,136 +34,168 @@ public class PalabrasReservadasDeEstructuraAnalizador extends Analizador {
     }
 
     private int leerPalabraAgente(int columna, int fila, String linea, String contexto) throws IOException {
-        // Saltar espacios antes del identificador
-        int antesDeEspacio = columna;
-        columna = saltadorDeespacios(columna, linea);
+        columna = saltarEspacios(linea, columna);
+        String nombreAgente = leerPalabra(linea, columna);
 
-        if (columna == antesDeEspacio) {
-            // No hubo espacio: no hay identificador
+        if (nombreAgente.isEmpty() || !Character.isLetter(nombreAgente.charAt(0))) {
             reportesError.registrarError(
-                    new ErrorLexico("", "Se esperaba " + contexto + " después de la palabra reservada", fila,
-                            columna));
+                    new ErrorLexico("", "Se esperaba " + contexto + " después de AGENTE", fila, columna));
             return columna;
-        } else {
-            // Leer el nombre del agente
-            int inicio = columna;
-            columna = concatenadorDePalabaras(columna, linea);
-            String nombreAgente = linea.substring(inicio, columna);
-
-            palabraDeAgente = ampliador(palabraDeAgente);
-            for (int i = 0; i < palabraDeAgente.length; i++) {
-                if (palabraDeAgente[i] == null) {
-                    palabraDeAgente[i] = nombreAgente;
-                    break;
-                }
-            }
-
-            columna = saltadorDeespacios(columna, linea);
-
-            if (columna >= linea.length() || linea.charAt(columna) != '{') {
-                reportesError.registrarError(
-                        new ErrorLexico("", "Se esperaba '{' después del identificador de agente", fila, columna));
-                return columna;
-            } else {
-                columna = verificadorDeCierre(columna, fila, '}');
-            }
         }
 
+        columna += nombreAgente.length();
+        agentesDeclarados.add(nombreAgente);
+
+        columna = saltarEspacios(linea, columna);
+        if (columna >= linea.length() || linea.charAt(columna) != '{') {
+            String charDetectado;
+            if (columna < linea.length()) {
+                charDetectado = String.valueOf(linea.charAt(columna));
+            } else {
+                charDetectado = "EOF";
+            }
+            reportesError.registrarError(
+                    new ErrorLexico(charDetectado, "Se esperaba '{' después del identificador de agente", fila,
+                            columna));
+            return columna;
+        }
+
+        columna++; // Consumir '{'
+        columna = verificadorDeCierre(columna - 1, fila, '}'); // verificar llave de cierre '}'
         return columna;
     }
 
     private int leerPalabraContexto(int columna, int fila, String linea, String contexto) throws IOException {
-        // Saltar espacios
-        columna = saltadorDeespacios(columna, linea);
-
-        if (columna < linea.length() && linea.charAt(columna) == '=') {
-            columna++;
-            columna = lectorDeComillas(columna, fila, linea);
-            columna = verificadorDeCierre(columna, fila, '"');
-        } else {
+        columna = saltarEspacios(linea, columna);
+        if (columna >= linea.length() || linea.charAt(columna) != '=') {
+            String charDetectado;
+            if (columna < linea.length()) {
+                charDetectado = String.valueOf(linea.charAt(columna));
+            } else {
+                charDetectado = "EOF";
+            }
             reportesError.registrarError(
-                    new ErrorLexico("", "Se esperaba '=' después de 'contexto'", fila, columna));
+                    new ErrorLexico(charDetectado, "Se esperaba '=' después de 'contexto'", fila, columna));
+            return columna;
         }
+
+        columna++; // Consumir '='
+        columna = saltarEspacios(linea, columna);
+
+        String literal = leerTextoEntreComillas(linea, columna);
+        if (literal.isEmpty() || !literal.startsWith("\"") || !literal.endsWith("\"")) {
+            reportesError.registrarError(
+                    new ErrorLexico("", "Se esperaba un valor de contexto entre comillas", fila, columna));
+            return columna;
+        }
+
+        columna += literal.length();
         return columna;
     }
 
     private int leerPalabraVariable(int columna, int fila, String linea, String contexto, File file)
             throws IOException {
-        int columnaTemporal;
-        columna = saltadorDeespacios(columna, linea);
-        while (true) {
+        columna = saltarEspacios(linea, columna);
+        String nombreVar = leerPalabra(linea, columna);
 
-            if (columna < linea.length() && linea.charAt(columna) == '=') {
-                columnaTemporal = analizador(columna, fila, linea, reportesError, file, false);
-                if (columnaTemporal != -1) {
-                    return columnaTemporal;
-                } else {
-                    columna = lectorDeComillas(columna, fila, linea);
-                    columna = verificadorDeCierre(columna, fila, '"');
-                    return columna;
-                }
-            } else if (columna == linea.length()) {
-
-                return columna;
-
-            } else {
-                int inicio = columna;
-                columna = concatenadorDePalabaras(columna, linea);
-                variable = ampliador(variable);
-                for (int i = 0; i < variable.length; i++) {
-                    if (variable[i] == null) {
-                        variable[i] = linea.substring(inicio, columna);
-                    }
-                }
-            }
-
+        if (nombreVar.isEmpty() || !Character.isLetter(nombreVar.charAt(0))) {
+            reportesError.registrarError(
+                    new ErrorLexico(nombreVar, "Se esperaba " + contexto + " después de 'variable'", fila, columna));
+            return columna;
         }
+
+        columna += nombreVar.length();
+        variablesDeclaradas.add(nombreVar);
+
+        columna = saltarEspacios(linea, columna);
+        if (columna >= linea.length() || linea.charAt(columna) != '=') {
+            String charDetectado;
+            if (columna < linea.length()) {
+                charDetectado = String.valueOf(linea.charAt(columna));
+            } else {
+                charDetectado = "EOF";
+            }
+            reportesError.registrarError(
+                    new ErrorLexico(charDetectado, "Se esperaba '=' después del nombre de la variable", fila, columna));
+            return columna;
+        }
+
+        columna++; // Consumir '='
+        columna = saltarEspacios(linea, columna);
+
+        int inicioValor = columna;
+        columna = consumirExpresionCompleta(linea, columna);
+        if (columna == inicioValor) {
+            reportesError.registrarError(
+                    new ErrorLexico("", "Se esperaba una expresión de valor para la variable", fila, columna));
+        }
+        return columna;
     }
 
     private int leerPalabraEjecucion(int columna, int fila, String linea, String contexto) throws IOException {
-        columna = saltadorDeespacios(columna, linea);
-        int inicio = columna;
-        columna = concatenadorDePalabaras(columna, linea);
-        String palabraAEjecutar = linea.substring(inicio, columna);
-        boolean verificadorDePalabra=false;
-        for (String string : palabraDeAgente) {
-            if (palabraAEjecutar.equals(string)) {
-                verificadorDePalabra = true;
-            }
-        }
-        if (!verificadorDePalabra){
+        columna = saltarEspacios(linea, columna);
+        String agenteAEjecutar = leerPalabra(linea, columna);
+
+        if (agenteAEjecutar.isEmpty()) {
             reportesError.registrarError(
-                    new ErrorLexico("", "Se esperaba que declarara la variable", fila, columna));
+                    new ErrorLexico("", "Se esperaba el nombre de un agente a ejecutar", fila, columna));
+            return columna;
+        }
+
+        columna += agenteAEjecutar.length();
+        if (!agentesDeclarados.contains(agenteAEjecutar)) {
+            reportesError.registrarError(
+                    new ErrorLexico(agenteAEjecutar, "El agente '" + agenteAEjecutar + "' no ha sido declarado", fila,
+                            columna - agenteAEjecutar.length()));
         }
         return columna;
     }
 
     private int leerPalabraExportacion(int columna, int fila, String linea, String contexto) throws IOException {
+        columna = saltarEspacios(linea, columna);
+        while (columna < linea.length()) {
+            columna = saltarEspacios(linea, columna);
+            if (columna >= linea.length()) {
+                break;
+            }
 
+            // Si es un comentario, terminamos de leer la exportación
+            if (linea.charAt(columna) == '/' && columna + 1 < linea.length() &&
+                    (linea.charAt(columna + 1) == '/' || linea.charAt(columna + 1) == '*')) {
+                break;
+            }
+
+            String token = leerPalabra(linea, columna);
+            if (token.isEmpty()) {
+                char ch = linea.charAt(columna);
+                if (ch != ',') {
+                    reportesError.registrarError(
+                            new ErrorLexico(String.valueOf(ch), "Se esperaba un nombre de variable para exportar", fila,
+                                    columna));
+                    columna++;
+                    continue;
+                }
+            } else {
+                if (!Character.isLetter(token.charAt(0))) {
+                    reportesError.registrarError(
+                            new ErrorLexico(token, "Se esperaba un nombre de variable valido para exportar", fila,
+                                    columna));
+                } else if (!variablesDeclaradas.contains(token)) {
+                    reportesError.registrarError(
+                            new ErrorLexico(token, "La variable '" + token + "' no ha sido declarada", fila, columna));
+                }
+                columna += token.length();
+            }
+
+            columna = saltarEspacios(linea, columna);
+            if (columna < linea.length() && linea.charAt(columna) == ',') {
+                columna++; // Consumir la coma
+            }
+        }
         return columna;
     }
 
     protected String[] token() {
         return tokens.getPALABRAS_RESERVADAS();
     }
-
-    private String[] ampliador(String[] areglo) {
-        // Bug fix #2: verificar null antes de acceder a .length
-        if (areglo != null && areglo.length != 0) {
-            int tamañoTemp = areglo.length;
-            String[] temp = new String[tamañoTemp];
-            for (int i = 0; i < tamañoTemp; i++) {
-                temp[i] = areglo[i];
-            }
-            // Bug fix #5: el loop solo copia hasta tamañoTemp (el último queda null)
-            areglo = new String[tamañoTemp + 1];
-            for (int i = 0; i < tamañoTemp; i++) {
-                areglo[i] = temp[i];
-            }
-        } else {
-            areglo = new String[1];
-        }
-        return areglo;
-    }
-
 }

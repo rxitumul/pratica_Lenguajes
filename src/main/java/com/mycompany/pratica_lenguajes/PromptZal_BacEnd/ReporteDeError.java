@@ -10,6 +10,7 @@ import com.mycompany.pratica_lenguajes.PromptZal_BacEnd.Errores.ErrorLexico;
 public class ReporteDeError {
 
     private List<ErrorLexico> listaDeErrores = new ArrayList<>();
+
     // Método para agregar errores durante el análisis
     public void registrarError(ErrorLexico errorLexico) {
         listaDeErrores.add(errorLexico);
@@ -19,19 +20,19 @@ public class ReporteDeError {
     public void generarHTMLDeError(String rutaDestino) {
         StringBuilder html = new StringBuilder();
         html.append("<!DOCTYPE html>\n<html>\n<head>\n");
-        html.append("<title>Reporte de Errores Léxicos</title>\n");
+        html.append("<title>Reporte de Errores Lexicos</title>\n");
         html.append(
                 "<style>table, th, td { border: 1px solid black; border-collapse: collapse; padding: 8px; }</style>\n");
         html.append("</head>\n<body>\n");
-        html.append("<h1>Reporte de Errores Léxicos</h1>\n");
+        html.append("<h1>Reporte de Errores Lexicos</h1>\n");
 
         if (listaDeErrores.isEmpty()) {
             html.append(
-                    "<p style='color: green;'><strong>No se encontraron errores léxicos durante el análisis.</strong></p>\n");
+                    "<p style='color: green;'><strong>No se encontraron errores lexicos durante el análisis.</strong></p>\n");
         } else {
             html.append("<table>\n");
             html.append(
-                    "<tr><th>#</th><th>Lexema / Carácter</th><th>Descripción del Error</th><th>Fila</th><th>Columna</th></tr>\n");
+                    "<tr><th>#</th><th>Lexema / Caracter</th><th>Descripcion del Error</th><th>Fila</th><th>Columna</th></tr>\n");
             int contador = 1;
             for (ErrorLexico err : listaDeErrores) {
                 html.append("<tr>")
