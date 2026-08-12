@@ -21,6 +21,8 @@ public class AnailizadorDeTexto {
     private ComandosDeIaAnalizador iaA = new ComandosDeIaAnalizador();
     private ReporteDeError reportesError = new ReporteDeError();
     private File file;
+    private File file2;
+    private ReporteHTMLTabla reporteHTMLTabla = new ReporteHTMLTabla();
 
     public void lector(String paht) throws IOException {
         Analizador.limpiarDeclaraciones();
@@ -28,6 +30,7 @@ public class AnailizadorDeTexto {
         file = new File(paht);
         lector = new BufferedReader(new FileReader(file));
         String lineaLeida;
+        int contadorDeCierreFila = 0;
         while ((lineaLeida = lector.readLine()) != null) {
             int contadorDeColumnas = 0;
             while (contadorDeColumnas < lineaLeida.length()) {
@@ -46,12 +49,24 @@ public class AnailizadorDeTexto {
                 }
                 if (letra == '/' && contadorDeColumnas + 1 < lineaLeida.length()
                         && lineaLeida.charAt(contadorDeColumnas + 1) == '*') {
-                    int end = lineaLeida.indexOf("*/", contadorDeColumnas + 2);
-                    if (end != -1) {
-                        contadorDeColumnas = end + 2;
-                        continue;
-                    } else {
-                        break;
+                    file2 = file;
+
+                    int contadorDeColumnasBloques = contadorDeColumnas;
+                    while ((lineaLeida = lector.readLine()) != null) {
+                        while (contadorDeColumnasBloques < lineaLeida.length()) {
+
+                            char end = lineaLeida.charAt(contadorDeColumnasBloques);
+
+                            if (end != -1) {
+                                contadorDeColumnas = end + 2;
+                                continue;
+                            } else {
+                                break;
+                            }
+
+                        }
+                        contadorDeColumnasBloques = 0;
+                        contadorDeCierreFila++;
                     }
                 }
 
@@ -97,7 +112,6 @@ public class AnailizadorDeTexto {
                     contadorDeColumnas = reservadasA.analizador(contadorDeColumnas, contadorDeFilas, lineaLeida,
                             reportesError, file, true);
                 } else {
-                    // Token no reconocido en el nivel superior (ej. variables sueltas sin comando)
                     reportesError.registrarError(new ErrorLexico(token,
                             "Instruccion o token no reconocido en este contexto", contadorDeFilas, contadorDeColumnas));
                     contadorDeColumnas += token.length();

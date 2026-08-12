@@ -17,15 +17,14 @@ public class MenuPrincipal {
                 front.menuPrincipal();
                 phat = scanner.nextLine();
                 analizador.lector(phat);
-                System.out.println("fin del analisis corectamente ");
-                System.out.println("Desea continuar con otro archivo escriba 's' sino presione enter");
+                front.finDelAnalisis();
                 if (!scanner.nextLine().equals("s")) {
                     break;
                 }
 
             } catch (IOException e) {
-                System.out.println("No se pudo encontrar el archivo vuelva a intentar ");
-                e.printStackTrace();
+                MenuDeSelecion front = new MenuDeSelecion();
+                front.errorDePrograma();
             } finally {
 
             }
