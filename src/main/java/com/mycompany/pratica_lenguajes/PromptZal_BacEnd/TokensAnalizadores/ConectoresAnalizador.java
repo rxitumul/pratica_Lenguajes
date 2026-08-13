@@ -21,7 +21,7 @@ public class ConectoresAnalizador extends Analizador {
         if (contadorDeIndices == 4) { // "->" está en el índice 4 de BibliotecaDeTokens.getCONECTORES()
             String varName = linea.substring(inicio, columna).trim();
             if (!varName.isEmpty() && Character.isLetter(varName.charAt(0))) {
-                variablesDeclaradas.add(varName);
+                variablesDeclaradas.agregarAlFinal(varName);
             }
         }
 

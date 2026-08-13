@@ -27,7 +27,7 @@ public class AnailizadorDeTexto {
     private File file;
     private File file2;
 
-    public void lector(String paht) throws IOException {
+    public void lector(String paht, int contadorDeAarchivosAnalizados) throws IOException {
         Analizador.limpiarDeclaraciones();
         int contadorDeFilas = 1;
         file = new File(paht);
@@ -171,7 +171,9 @@ public class AnailizadorDeTexto {
             }
             contadorDeFilas++;
         }
-        reportesError.generarHTMLDeError("ReporteErrores.html");
+        reporteHTMLTabla.generarHTMLDeTokens("ReportesHTML/ReporteTokens" + contadorDeAarchivosAnalizados + ".html");
+        reporteHTMLTabla.tablaDeTokensConsola();
+        reportesError.generarHTMLDeError("ReportesHTML/ReporteErrores" + contadorDeAarchivosAnalizados + ".html");
     }
 
     // verificadores de tokens

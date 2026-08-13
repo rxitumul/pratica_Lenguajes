@@ -86,6 +86,23 @@ public class Listas<T> {
 
     }
 
+    public boolean contiene(T contenido) {
+        Nodo<T> actual = inicio;
+        while (actual != null) {
+            if (actual.getContenido() != null && actual.getContenido().equals(contenido)) {
+                return true;
+            }
+            actual = actual.getSiguiente();
+        }
+        return false;
+    }
+
+    public void limpiar() {
+        inicio = null;
+        fin = null;
+        capacidad = 0;
+    }
+
     public int getCapacidad() {
         return capacidad;
     }

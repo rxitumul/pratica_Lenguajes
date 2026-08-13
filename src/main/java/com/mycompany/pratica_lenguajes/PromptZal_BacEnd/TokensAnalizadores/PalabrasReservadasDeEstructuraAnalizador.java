@@ -45,7 +45,7 @@ public class PalabrasReservadasDeEstructuraAnalizador extends Analizador {
         }
 
         columna += nombreAgente.length();
-        agentesDeclarados.add(nombreAgente);
+        agentesDeclarados.agregarAlFinal(nombreAgente);
 
         columna = comando.saltarEspacios(linea, columna);
         if (columna >= linea.length() || linea.charAt(columna) != '{') {
@@ -98,7 +98,7 @@ public class PalabrasReservadasDeEstructuraAnalizador extends Analizador {
         }
 
         columna += nombreVar.length();
-        variablesDeclaradas.add(nombreVar);
+        variablesDeclaradas.agregarAlFinal(nombreVar);
 
         columna = comando.saltarEspacios(linea, columna);
         if (columna >= linea.length() || linea.charAt(columna) != '=') {
@@ -136,7 +136,7 @@ public class PalabrasReservadasDeEstructuraAnalizador extends Analizador {
         }
 
         columna += agenteAEjecutar.length();
-        if (!agentesDeclarados.contains(agenteAEjecutar)) {
+        if (!agentesDeclarados.contiene(agenteAEjecutar)) {
             reportesError.registrarError(
                     new ErrorLexico(agenteAEjecutar, "El agente '" + agenteAEjecutar + "' no ha sido declarado", fila,
                             columna - agenteAEjecutar.length()));
@@ -173,7 +173,7 @@ public class PalabrasReservadasDeEstructuraAnalizador extends Analizador {
                     reportesError.registrarError(
                             new ErrorLexico(token, "Se esperaba un nombre de variable valido para exportar", fila,
                                     columna));
-                } else if (!variablesDeclaradas.contains(token)) {
+                } else if (!variablesDeclaradas.contiene(token)) {
                     reportesError.registrarError(
                             new ErrorLexico(token, "La variable '" + token + "' no ha sido declarada", fila, columna));
                 }

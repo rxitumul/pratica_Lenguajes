@@ -9,6 +9,7 @@ public class MenuPrincipal {
     private Scanner scanner = new Scanner(System.in);
 
     public void menuPrincipalInicio() {
+        int contadorDeAarchivosAnalizados = 0;
         while (true) {
             try {
                 String phat;
@@ -16,7 +17,8 @@ public class MenuPrincipal {
                 AnailizadorDeTexto analizador = new AnailizadorDeTexto();
                 front.menuPrincipal();
                 phat = scanner.nextLine();
-                analizador.lector(phat);
+                analizador.lector(phat, contadorDeAarchivosAnalizados);
+                contadorDeAarchivosAnalizados++;
                 front.finDelAnalisis();
                 if (!scanner.nextLine().equals("s")) {
                     break;

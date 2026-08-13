@@ -4,14 +4,14 @@ import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.List;
 
 import com.mycompany.pratica_lenguajes.PromptZal_BacEnd.BibliotecaDeTokens;
 import com.mycompany.pratica_lenguajes.PromptZal_BacEnd.ReporteDeError;
 import com.mycompany.pratica_lenguajes.PromptZal_BacEnd.ReporteHTMLTabla;
 import com.mycompany.pratica_lenguajes.PromptZal_BacEnd.Errores.ErrorLexico;
 import com.mycompany.pratica_lenguajes.PromptZal_BacEnd.TokensRegistrados.RegistroDeTokens;
+
+import com.mycompany.pratica_lenguajes.PromptZal_BacEnd.ListaîlaYColas.Listas;
 
 public abstract class Analizador {
     protected BibliotecaDeTokens tokens = new BibliotecaDeTokens();
@@ -23,13 +23,14 @@ public abstract class Analizador {
     private File fileLocal;
     protected ComandosMultimedia comando = new ComandosMultimedia();
 
-    // Listas estáticas compartidas para validación semántica
-    protected static List<String> variablesDeclaradas = new ArrayList<>();
-    protected static List<String> agentesDeclarados = new ArrayList<>();
+    // Listas estáticas compartidas para validación semántica usando la lista
+    // doblemente enlazada propia
+    protected static Listas<String> variablesDeclaradas = new Listas<>();
+    protected static Listas<String> agentesDeclarados = new Listas<>();
 
     public static void limpiarDeclaraciones() {
-        variablesDeclaradas.clear();
-        agentesDeclarados.clear();
+        variablesDeclaradas.limpiar();
+        agentesDeclarados.limpiar();
     }
 
     public int analizador(int columna, int fila, String linea, ReporteDeError reportesErrorEntrante,
