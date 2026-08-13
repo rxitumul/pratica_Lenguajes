@@ -7,7 +7,7 @@ public class DirectivasAnalaizador extends Analizador {
 
     @Override
     protected int condicion(int columna, int fila, String linea, File file) throws IOException {
-        columna = saltarEspacios(linea, columna);
+        columna = comando.saltarEspacios(linea, columna);
         return lectorDeComillas(columna, fila, linea);
     }
 

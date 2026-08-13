@@ -11,12 +11,12 @@ public class ComandosDeIaAnalizador extends Analizador {
     protected int condicion(int contadorDeColumnas, int contadorDeFilas, String lineaLeida, File archivo)
             throws IOException {
         // Saltamos el espacio entre el comando y su argumento
-        contadorDeColumnas = saltarEspacios(lineaLeida, contadorDeColumnas);
+        contadorDeColumnas = comando.saltarEspacios(lineaLeida, contadorDeColumnas);
 
         int posicionAntes = contadorDeColumnas;
 
         // Consumimos la expresión completa que sigue al comando
-        contadorDeColumnas = consumirExpresionCompleta(lineaLeida, contadorDeColumnas);
+        contadorDeColumnas = movedorDeColumnasHastaFinDeEsprecion(lineaLeida, contadorDeColumnas,contadorDeFilas);
 
         // Si no avanzamos nada es porque no había argumento → error
         if (contadorDeColumnas == posicionAntes) {

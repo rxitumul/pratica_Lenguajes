@@ -11,15 +11,17 @@ import com.mycompany.pratica_lenguajes.PromptZal_BacEnd.BibliotecaDeTokens;
 import com.mycompany.pratica_lenguajes.PromptZal_BacEnd.ReporteDeError;
 import com.mycompany.pratica_lenguajes.PromptZal_BacEnd.ReporteHTMLTabla;
 import com.mycompany.pratica_lenguajes.PromptZal_BacEnd.Errores.ErrorLexico;
+import com.mycompany.pratica_lenguajes.PromptZal_BacEnd.TokensRegistrados.RegistroDeTokens;
 
 public abstract class Analizador {
     protected BibliotecaDeTokens tokens = new BibliotecaDeTokens();
     protected ReporteDeError reportesError;
-    protected ReporteHTMLTabla tabla = new ReporteHTMLTabla();
+    protected ReporteHTMLTabla reporteHTMLTabla;
     protected ErrorLexico error;
     protected int contadorDeIndices = 0;
     protected String[] palabrasResultadoLocal;
     private File fileLocal;
+    protected ComandosMultimedia comando = new ComandosMultimedia();
 
     // Listas estáticas compartidas para validación semántica
     protected static List<String> variablesDeclaradas = new ArrayList<>();
@@ -30,110 +32,32 @@ public abstract class Analizador {
         agentesDeclarados.clear();
     }
 
-    public int analizador(int columna, int fila, String linea, ReporteDeError reportesError, File file,
-            boolean verdadError)
-            throws IOException {
-        this.reportesError = reportesError;
-        columna = saltarEspacios(linea, columna);
+    public int analizador(int columna, int fila, String linea, ReporteDeError reportesErrorEntrante,
+            ReporteHTMLTabla reportesTabla, File fileEntrante, boolean verdadError) throws IOException {
+
+        reporteHTMLTabla = reportesTabla;
+        reportesError = reportesErrorEntrante;
+        fileLocal = fileEntrante;
+        columna = comando.saltarEspacios(linea, columna);
         if (columna >= linea.length()) {
             return columna;
         }
-        this.fileLocal = file;
-
-        int inicio = columna;
-        String palabra = "";
-
-        // Si empieza con @ o es el conector ->, leemos adecuadamente
-        if (linea.charAt(columna) == '@') {
-            palabra = leerDirectivaOConector(linea, columna);
-        } else if (linea.charAt(columna) == '-' && columna + 1 < linea.length() && linea.charAt(columna + 1) == '>') {
-            palabra = "->";
-        } else {
-            palabra = leerPalabra(linea, columna);
-        }
-
-        columna = inicio + palabra.length();
-
-        if (esDirectivaValida(palabra)) {
-            // tabla.tablaDeTokens();
-            columna = condicion(columna, fila, linea, file);
-        } else if (verdadError) {
-            error = new ErrorLexico(palabra, "Token no valido o no encontrado", fila, inicio);
-            reportesError.registrarError(error);
-        } else {
-            return -1;
-        }
-        return columna;
+        // Leemos la palabra solo para calcular cuánto avanzar e identificar el índice
+        // en la tabla
+        String palabra = (linea.charAt(columna) == '@') ? comando.leerDirectivaOConector(linea, columna)
+                : (linea.charAt(columna) == '-' && columna + 1 < linea.length() && linea.charAt(columna + 1) == '>')
+                        ? "->"
+                        : comando.leerPalabra(linea, columna);
+        columna += palabra.length(); // Avanzamos el cursor después de la palabra clave
+        esDirectivaValida(palabra);
+        // Ejecutamos la condición (argumentos/parámetros) directamente
+        return condicion(columna, fila, linea, fileLocal);
     }
 
-    protected boolean esDirectivaValida(String palabra) {
-        contadorDeIndices = 0;
-        String[] palabrasDirectivas = token();
+    // pos leemos toda la exprecion hasta terminar jejeje
+    protected int movedorDeColumnasHastaFinDeEsprecion(String linea, int columna, int fila) {
+        columna = comando.saltarEspacios(linea, columna);
 
-        for (String d : palabrasDirectivas) {
-            if (d.equals(palabra)) {
-                return true;
-            }
-            contadorDeIndices++;
-        }
-        return false;
-    }
-
-    // Recorre Caracter por Caracter saltando los espacios en blanco
-    public int saltarEspacios(String linea, int columna) {
-        while (columna < linea.length() && (linea.charAt(columna) == ' ' || linea.charAt(columna) == '\t')) {
-            columna++;
-        }
-        return columna;
-    }
-
-    // Lee un identificador, número o comando Caracter por Caracter
-    public String leerPalabra(String linea, int columna) {
-        int inicio = columna;
-        while (columna < linea.length()) {
-            char columnasLocales = linea.charAt(columna);
-            if (Character.isLetterOrDigit(columnasLocales) || columnasLocales == '_' || columnasLocales == '-') {
-                columna++;
-            } else {
-                break;
-            }
-        }
-        return linea.substring(inicio, columna);
-    }
-
-    // Lee una directiva que inicia con @ o el conector -> Caracter por Caracter
-    public String leerDirectivaOConector(String linea, int columna) {
-        int inicio = columna;
-        if (columna < linea.length() && linea.charAt(columna) == '@') {
-            columna++;
-            while (columna < linea.length()
-                    && (Character.isLetterOrDigit(linea.charAt(columna)) || linea.charAt(columna) == '_')) {
-                columna++;
-            }
-        }
-        return linea.substring(inicio, columna);
-    }
-
-    // Recorre Caracter por Caracter buscando un texto entre comillas dobles
-    public String leerTextoEntreComillas(String linea, int columna) {
-        if (columna < linea.length() && linea.charAt(columna) == '"') {
-            int inicio = columna;
-            columna++;
-            while (columna < linea.length() && linea.charAt(columna) != '"') {
-                columna++;
-            }
-            if (columna < linea.length()) {
-                columna++; // Incluir la comilla de cierre
-            }
-            return linea.substring(inicio, columna);
-        }
-        return "";
-    }
-
-    // Consume una expresión completa (cadenas, funciones, sumas, etc.) Caracter por
-    // Caracter
-    public int consumirExpresionCompleta(String linea, int columna) {
-        columna = saltarEspacios(linea, columna);
         if (columna >= linea.length()) {
             return columna;
         }
@@ -142,20 +66,27 @@ public abstract class Analizador {
 
         // 1. Si es un literal entre comillas
         if (c == '"') {
-            String texto = leerTextoEntreComillas(linea, columna);
-            columna += texto.length();
+            columna = lectorDeComillas(columna, fila, linea);
         }
-        // 2. Si es una palabra (identificador o número)
+        // 2. Si es una palabra
+
         else if (Character.isLetterOrDigit(c) || c == '_') {
-            String palabra = leerPalabra(linea, columna);
+
+            String palabra = comando.leerPalabra(linea, columna);
             columna += palabra.length();
 
-            // Verificamos si es una función (ej: CARGAR(...))
-            int columnaTemp = saltarEspacios(linea, columna);
+            // Verificamos si es una función
+
+            int columnaTemp = comando.saltarEspacios(linea, columna);
             if (columnaTemp < linea.length() && linea.charAt(columnaTemp) == '(') {
-                columna = columnaTemp + 1; // Consumimos el '('
+
+                reporteHTMLTabla
+                        .registroDeTokens(new RegistroDeTokens("CARGAR", "Reconocido", fila, columna, "Comandos IA"));
+                columna = columnaTemp + 1;
                 int parentesisAbiertos = 1;
+
                 while (columna < linea.length() && parentesisAbiertos > 0) {
+
                     char ch = linea.charAt(columna);
                     if (ch == '(') {
                         parentesisAbiertos++;
@@ -165,53 +96,57 @@ public abstract class Analizador {
                     columna++;
                 }
             }
-        }
-        // 3. Cualquier otro Caracter simple
-        else {
+        } else {
             columna++;
         }
 
-        // Verificamos si le sigue otra palabra sin palabras claves (ej: 100 palabras)
-        int columnaSig = saltarEspacios(linea, columna);
+        int columnaSig = comando.saltarEspacios(linea, columna);
         if (columnaSig < linea.length()) {
             char sigC = linea.charAt(columnaSig);
             if (Character.isLetterOrDigit(sigC) || sigC == '_') {
-                String sigPalabra = leerPalabra(linea, columnaSig);
-                if (!esPalabraClave(sigPalabra)) {
+                String sigPalabra = comando.leerPalabra(linea, columnaSig);
+                if (!esPalabraClave(sigPalabra, fila, columna)) {
                     columna = columnaSig;
-                    columna = consumirExpresionCompleta(linea, columna);
+                    columna = movedorDeColumnasHastaFinDeEsprecion(linea, columna, fila);
                 }
             }
         }
 
         // Verificamos si hay concatenación/suma con '+'
-        int columnaMas = saltarEspacios(linea, columna);
+        int columnaMas = comando.saltarEspacios(linea, columna);
         if (columnaMas < linea.length() && linea.charAt(columnaMas) == '+') {
+            reporteHTMLTabla.registroDeTokens(new RegistroDeTokens("+", "Reconocido", fila, columna, "operadores"));
             columna = columnaMas + 1; // Consumimos el '+'
-            columna = consumirExpresionCompleta(linea, columna);
+            columna = movedorDeColumnasHastaFinDeEsprecion(linea, columna, fila);
         }
 
         return columna;
     }
 
-    // Verifica si una palabra es parte del vocabulario reservado de ZAL
-    protected boolean esPalabraClave(String token) {
+    // Verifica si una palabra es parte del vocabulario reservado
+    protected boolean esPalabraClave(String token, int fila, int columna) {
         for (String directivaAnalizar : tokens.getDIRECTIVAS()) {
             if (directivaAnalizar.equals(token))
-
-                return true;
+                reporteHTMLTabla
+                        .registroDeTokens(new RegistroDeTokens(token, "Reconocido", fila, columna, "Directiva"));
+            return true;
         }
         for (String palabraReservadaAnalizar : tokens.getPALABRAS_RESERVADAS()) {
             if (palabraReservadaAnalizar.equals(token))
-                return true;
+                reporteHTMLTabla.registroDeTokens(
+                        new RegistroDeTokens(token, "Reconocido", fila, columna, "Palabras Reservadas"));
+            return true;
         }
         for (String comandoDeIaAnalizar : tokens.getCOMANDOS_DE_IA()) {
             if (comandoDeIaAnalizar.equals(token))
-                return true;
+                reporteHTMLTabla
+                        .registroDeTokens(new RegistroDeTokens(token, "Reconocido", fila, columna, "Comandos De IA"));
+            return true;
         }
         for (String conectorAnalizar : tokens.getCONECTORES()) {
             if (conectorAnalizar.equals(token))
-                return true;
+                reporteHTMLTabla.registroDeTokens(new RegistroDeTokens(token, "Reconocido", fila, columna, "Conector"));
+            return true;
         }
         return false;
     }
@@ -248,26 +183,44 @@ public abstract class Analizador {
     }
 
     protected int lectorDeComillas(int columna, int fila, String linea) {
-        int contadorComillas = 0;
-        while (columna < linea.length()) {
-            if (linea.charAt(columna) == '"') {
-                contadorComillas++;
-                if (contadorComillas == 2) {
-                    columna++;
-                    break;
-                }
-            }
-            columna++;
-        }
-        if (contadorComillas < 2) {
+        String texto = leerTextoEntreComillas(linea, columna);
+        // Si encontró el texto con sus dos comillas ("...")
+        if (!texto.isEmpty() && texto.startsWith("\"") && texto.endsWith("\"") && texto.length() >= 2) {
+            reporteHTMLTabla.registroDeTokens(
+                    new RegistroDeTokens("\"...\"", "Reconocido", fila, columna, "Literales"));
+            return columna + texto.length();
+        } else {
             error = new ErrorLexico("\"...\"", "Falta el cierre de comillas en la directiva", fila, columna);
             reportesError.registrarError(error);
+            return columna + texto.length();
         }
-        return columna;
     }
 
-    public void setPalabrasResultado(String[] resultado) {
-        palabrasResultadoLocal = resultado;
+    private String leerTextoEntreComillas(String linea, int columna) {
+        if (columna < linea.length() && linea.charAt(columna) == '"') {
+            int inicio = columna;
+            columna++;
+            while (columna < linea.length() && linea.charAt(columna) != '"') {
+                columna++;
+            }
+            if (columna < linea.length()) {
+                columna++; // Incluir la comilla de cierre
+            }
+            return linea.substring(inicio, columna);
+        }
+        return "";
+    }
+
+    private boolean esDirectivaValida(String palabra) {
+        contadorDeIndices = 0;
+        String[] palabrasDirectivas = token();
+        for (String d : palabrasDirectivas) {
+            if (d.equals(palabra)) {
+                return true;
+            }
+            contadorDeIndices++;
+        }
+        return false;
     }
 
     protected abstract String[] token();

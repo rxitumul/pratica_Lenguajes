@@ -8,9 +8,9 @@ public class ConectoresAnalizador extends Analizador {
 
     @Override
     protected int condicion(int columna, int fila, String linea, File file) throws IOException {
-        columna = saltarEspacios(linea, columna);
+        columna = comando.saltarEspacios(linea, columna);
         int inicio = columna;
-        columna = consumirExpresionCompleta(linea, columna);
+        columna = movedorDeColumnasHastaFinDeEsprecion(linea, columna,fila);
         if (columna == inicio) {
             error = new ErrorLexico("", "Se esperaba un complemento después del conector", fila, columna);
             reportesError.registrarError(error);

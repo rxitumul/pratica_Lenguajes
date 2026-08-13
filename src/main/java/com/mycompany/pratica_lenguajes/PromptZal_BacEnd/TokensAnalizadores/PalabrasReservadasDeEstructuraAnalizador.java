@@ -8,7 +8,7 @@ public class PalabrasReservadasDeEstructuraAnalizador extends Analizador {
 
     @Override
     protected int condicion(int columna, int fila, String linea, File file) throws IOException {
-        columna = saltarEspacios(linea, columna);
+        columna = comando.saltarEspacios(linea, columna);
 
         switch (contadorDeIndices) {
             case 0: // AGENTE - espera un identificador a continuación
@@ -34,8 +34,9 @@ public class PalabrasReservadasDeEstructuraAnalizador extends Analizador {
     }
 
     private int leerPalabraAgente(int columna, int fila, String linea, String contexto) throws IOException {
-        columna = saltarEspacios(linea, columna);
-        String nombreAgente = leerPalabra(linea, columna);
+        columna = comando.saltarEspacios(linea, columna);
+
+        String nombreAgente = comando.leerPalabra(linea, columna);
 
         if (nombreAgente.isEmpty() || !Character.isLetter(nombreAgente.charAt(0))) {
             reportesError.registrarError(
@@ -46,7 +47,7 @@ public class PalabrasReservadasDeEstructuraAnalizador extends Analizador {
         columna += nombreAgente.length();
         agentesDeclarados.add(nombreAgente);
 
-        columna = saltarEspacios(linea, columna);
+        columna = comando.saltarEspacios(linea, columna);
         if (columna >= linea.length() || linea.charAt(columna) != '{') {
             String charDetectado;
             if (columna < linea.length()) {
@@ -66,7 +67,7 @@ public class PalabrasReservadasDeEstructuraAnalizador extends Analizador {
     }
 
     private int leerPalabraContexto(int columna, int fila, String linea, String contexto) throws IOException {
-        columna = saltarEspacios(linea, columna);
+        columna = comando.saltarEspacios(linea, columna);
         if (columna >= linea.length() || linea.charAt(columna) != '=') {
             String charDetectado;
             if (columna < linea.length()) {
@@ -80,23 +81,15 @@ public class PalabrasReservadasDeEstructuraAnalizador extends Analizador {
         }
 
         columna++; // Consumir '='
-        columna = saltarEspacios(linea, columna);
+        columna = comando.saltarEspacios(linea, columna);
 
-        String literal = leerTextoEntreComillas(linea, columna);
-        if (literal.isEmpty() || !literal.startsWith("\"") || !literal.endsWith("\"")) {
-            reportesError.registrarError(
-                    new ErrorLexico("", "Se esperaba un valor de contexto entre comillas", fila, columna));
-            return columna;
-        }
-
-        columna += literal.length();
-        return columna;
+        return lectorDeComillas(columna, fila, linea);
     }
 
     private int leerPalabraVariable(int columna, int fila, String linea, String contexto, File file)
             throws IOException {
-        columna = saltarEspacios(linea, columna);
-        String nombreVar = leerPalabra(linea, columna);
+        columna = comando.saltarEspacios(linea, columna);
+        String nombreVar = comando.leerPalabra(linea, columna);
 
         if (nombreVar.isEmpty() || !Character.isLetter(nombreVar.charAt(0))) {
             reportesError.registrarError(
@@ -107,7 +100,7 @@ public class PalabrasReservadasDeEstructuraAnalizador extends Analizador {
         columna += nombreVar.length();
         variablesDeclaradas.add(nombreVar);
 
-        columna = saltarEspacios(linea, columna);
+        columna = comando.saltarEspacios(linea, columna);
         if (columna >= linea.length() || linea.charAt(columna) != '=') {
             String charDetectado;
             if (columna < linea.length()) {
@@ -121,10 +114,10 @@ public class PalabrasReservadasDeEstructuraAnalizador extends Analizador {
         }
 
         columna++; // Consumir '='
-        columna = saltarEspacios(linea, columna);
+        columna = comando.saltarEspacios(linea, columna);
 
         int inicioValor = columna;
-        columna = consumirExpresionCompleta(linea, columna);
+        columna = movedorDeColumnasHastaFinDeEsprecion(linea, columna,fila);
         if (columna == inicioValor) {
             reportesError.registrarError(
                     new ErrorLexico("", "Se esperaba una expresión de valor para la variable", fila, columna));
@@ -133,8 +126,8 @@ public class PalabrasReservadasDeEstructuraAnalizador extends Analizador {
     }
 
     private int leerPalabraEjecucion(int columna, int fila, String linea, String contexto) throws IOException {
-        columna = saltarEspacios(linea, columna);
-        String agenteAEjecutar = leerPalabra(linea, columna);
+        columna = comando.saltarEspacios(linea, columna);
+        String agenteAEjecutar = comando.leerPalabra(linea, columna);
 
         if (agenteAEjecutar.isEmpty()) {
             reportesError.registrarError(
@@ -152,9 +145,9 @@ public class PalabrasReservadasDeEstructuraAnalizador extends Analizador {
     }
 
     private int leerPalabraExportacion(int columna, int fila, String linea, String contexto) throws IOException {
-        columna = saltarEspacios(linea, columna);
+        columna = comando.saltarEspacios(linea, columna);
         while (columna < linea.length()) {
-            columna = saltarEspacios(linea, columna);
+            columna = comando.saltarEspacios(linea, columna);
             if (columna >= linea.length()) {
                 break;
             }
@@ -165,7 +158,7 @@ public class PalabrasReservadasDeEstructuraAnalizador extends Analizador {
                 break;
             }
 
-            String token = leerPalabra(linea, columna);
+            String token = comando.leerPalabra(linea, columna);
             if (token.isEmpty()) {
                 char ch = linea.charAt(columna);
                 if (ch != ',') {
@@ -187,7 +180,7 @@ public class PalabrasReservadasDeEstructuraAnalizador extends Analizador {
                 columna += token.length();
             }
 
-            columna = saltarEspacios(linea, columna);
+            columna = comando.saltarEspacios(linea, columna);
             if (columna < linea.length() && linea.charAt(columna) == ',') {
                 columna++; // Consumir la coma
             }
