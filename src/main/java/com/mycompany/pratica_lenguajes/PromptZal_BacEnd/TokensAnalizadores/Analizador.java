@@ -49,9 +49,8 @@ public abstract class Analizador {
                 : (linea.charAt(columna) == '-' && columna + 1 < linea.length() && linea.charAt(columna + 1) == '>')
                         ? "->"
                         : comando.leerPalabra(linea, columna);
-        columna += palabra.length(); // Avanzamos el cursor después de la palabra clave
+        columna += palabra.length();
         esDirectivaValida(palabra);
-        // Ejecutamos la condición (argumentos/parámetros) directamente
         return condicion(columna, fila, linea, fileLocal);
     }
 
