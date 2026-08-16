@@ -17,9 +17,13 @@ public class MenuPrincipal {
                 AnailizadorDeTexto analizador = new AnailizadorDeTexto();
                 front.menuPrincipal();
                 phat = scanner.nextLine();
-                analizador.lector(phat, contadorDeAarchivosAnalizados);
-                contadorDeAarchivosAnalizados++;
-                front.finDelAnalisis();
+                boolean todoCorecto=analizador.lector(phat, contadorDeAarchivosAnalizados);
+                if(todoCorecto){
+                    contadorDeAarchivosAnalizados++;
+                    front.finDelAnalisis();
+                }else{
+                    front.archivoNoValido();
+                }
                 if (!scanner.nextLine().equals("s")) {
                     break;
                 }

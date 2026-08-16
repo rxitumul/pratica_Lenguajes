@@ -27,143 +27,153 @@ public class AnailizadorDeTexto {
     private File file;
     private File file2;
 
-    public void lector(String paht, int contadorDeAarchivosAnalizados) throws IOException {
+    public boolean lector(String paht, int contadorDeAarchivosAnalizados) throws IOException {
         Analizador.limpiarDeclaraciones();
         int contadorDeFilas = 1;
         file = new File(paht);
+        String nombreDelArchivo = file.getName();
         lector = new BufferedReader(new FileReader(file));
         String lineaLeida;
         int contadorDeCierreFila = 0;
+        if (verificadorDeArchivoValido(nombreDelArchivo)) {
 
-        while ((lineaLeida = lector.readLine()) != null) {
+            while ((lineaLeida = lector.readLine()) != null) {
 
-            // cambio de linea
+                // cambio de linea
+                int contadorDeColumnas = 0;
+                while (contadorDeColumnas < lineaLeida.length() && contadorDeCierreFila < contadorDeFilas) {
 
-            int contadorDeColumnas = 0;
-            while (contadorDeColumnas < lineaLeida.length() && contadorDeCierreFila < contadorDeFilas) {
+                    // Saltar espacios/tabs iniciales
 
-                // Saltar espacios/tabs iniciales
+                    contadorDeColumnas = comando.saltarEspacios(lineaLeida, contadorDeColumnas);
 
-                contadorDeColumnas = comando.saltarEspacios(lineaLeida, contadorDeColumnas);
+                    if (contadorDeColumnas >= lineaLeida.length()) {
+                        break;
+                    }
 
-                if (contadorDeColumnas >= lineaLeida.length()) {
-                    break;
-                }
+                    char letra = lineaLeida.charAt(contadorDeColumnas);
 
-                char letra = lineaLeida.charAt(contadorDeColumnas);
+                    // Descartar comentarios y bloques de comentarios
+                    if (letra == '/' && contadorDeColumnas + 1 < lineaLeida.length()
+                            && lineaLeida.charAt(contadorDeColumnas + 1) == '/') {
+                        reporteHTMLTabla.registroDeTokens(new RegistroDeTokens("//", "Reconocido", contadorDeFilas,
+                                contadorDeColumnas, "Comentarios"));
+                        break; // Ignorar el resto de la línea
+                    }
 
-                // Descartar comentarios y bloques de comentarios
-                if (letra == '/' && contadorDeColumnas + 1 < lineaLeida.length()
-                        && lineaLeida.charAt(contadorDeColumnas + 1) == '/') {
-                    reporteHTMLTabla.registroDeTokens(new RegistroDeTokens("//", "Reconocido", contadorDeFilas,
-                            contadorDeColumnas, "Comentarios"));
-                    break; // Ignorar el resto de la línea
-                }
+                    if (letra == '/' && contadorDeColumnas + 1 < lineaLeida.length()
+                            && lineaLeida.charAt(contadorDeColumnas + 1) == '*') {
 
-                if (letra == '/' && contadorDeColumnas + 1 < lineaLeida.length()
-                        && lineaLeida.charAt(contadorDeColumnas + 1) == '*') {
+                        file2 = file;
 
-                    file2 = file;
+                        try (BufferedReader lector2 = new BufferedReader(new FileReader(file2))) {
 
-                    try (BufferedReader lector2 = new BufferedReader(new FileReader(file2))) {
+                            int lineasAvanzadas = 0;
+                            while (lineasAvanzadas < contadorDeFilas && lector2.readLine() != null) {
+                                lineasAvanzadas++;
+                            }
 
-                        int lineasAvanzadas = 0;
-                        while (lineasAvanzadas < contadorDeFilas && lector2.readLine() != null) {
-                            lineasAvanzadas++;
-                        }
+                            lineaLeida = lector2.readLine();
 
-                        lineaLeida = lector2.readLine();
+                            int contadorDeColumnasBloques = contadorDeColumnas + 2;
+                            boolean comentarioCerrado = false;
 
-                        int contadorDeColumnasBloques = contadorDeColumnas + 2;
-                        boolean comentarioCerrado = false;
+                            while (lineaLeida != null && !comentarioCerrado) {
 
-                        while (lineaLeida != null && !comentarioCerrado) {
+                                while (contadorDeColumnasBloques < lineaLeida.length()) {
+                                    if (lineaLeida.charAt(contadorDeColumnasBloques) == '*'
+                                            && contadorDeColumnasBloques + 1 < lineaLeida.length()
+                                            && lineaLeida.charAt(contadorDeColumnasBloques + 1) == '/') {
+                                        reporteHTMLTabla.registroDeTokens(new RegistroDeTokens("/*..*/", "Reconocido",
+                                                contadorDeFilas, contadorDeColumnas, "Comentarios"));
 
-                            while (contadorDeColumnasBloques < lineaLeida.length()) {
-                                if (lineaLeida.charAt(contadorDeColumnasBloques) == '*'
-                                        && contadorDeColumnasBloques + 1 < lineaLeida.length()
-                                        && lineaLeida.charAt(contadorDeColumnasBloques + 1) == '/') {
-                                    reporteHTMLTabla.registroDeTokens(new RegistroDeTokens("/*..*/", "Reconocido",
-                                            contadorDeFilas, contadorDeColumnas, "Comentarios"));
-
-                                    comentarioCerrado = true;
-                                    contadorDeColumnas = contadorDeColumnasBloques + 2;
-                                    break;
+                                        comentarioCerrado = true;
+                                        contadorDeColumnas = contadorDeColumnasBloques + 2;
+                                        break;
+                                    }
+                                    contadorDeColumnasBloques++;
                                 }
-                                contadorDeColumnasBloques++;
+
+                                if (!comentarioCerrado) {
+                                    contadorDeColumnasBloques = 0;
+                                    contadorDeCierreFila++;
+                                    lineaLeida = lector2.readLine();
+                                }
                             }
 
-                            if (!comentarioCerrado) {
-                                contadorDeColumnasBloques = 0;
-                                contadorDeCierreFila++;
-                                lineaLeida = lector2.readLine();
+                            if (contadorDeCierreFila > contadorDeFilas) {
+                                break;
                             }
-                        }
 
-                        if (contadorDeCierreFila > contadorDeFilas) {
-                            break;
+                        } catch (Exception e) {
+                            reportesError.registrarError(new ErrorLexico(" /*..*/",
+                                    "se espera que se ciere el bloque", contadorDeFilas,
+                                    contadorDeColumnas));
                         }
+                    }
 
-                    } catch (Exception e) {
-                        reportesError.registrarError(new ErrorLexico(" /*..*/",
-                                "se espera que se ciere el bloque", contadorDeFilas,
+                    if (letra == '{' || letra == '}') {
+                        contadorDeColumnas++;
+                        continue;
+                    }
+
+                    // separador de palabras con caracteres especiales como -> y @
+                    String token = comando.leerSiguienteToken(lineaLeida, contadorDeColumnas);
+
+                    if (token.isEmpty()) {
+                        // Si no es una palabra, podría ser un operador suelto no reconocido en este
+                        // nivel
+                        reportesError.registrarError(new ErrorLexico(String.valueOf(letra),
+                                "Caracter no reconocido o fuera de contexto", contadorDeFilas, contadorDeColumnas));
+                        contadorDeColumnas++;
+                        continue;
+                    }
+
+                    // 4. Distribuir el token de acuerdo a su tipo y genera su reconocimiento
+                    if (esDirectiva(token)) {
+
+                        reporteHTMLTabla.registroDeTokens(new RegistroDeTokens(token, "Reconocido", contadorDeFilas,
+                                contadorDeColumnas, "Directivas"));
+                        contadorDeColumnas = directivas.analizador(contadorDeColumnas, contadorDeFilas, lineaLeida,
+                                reportesError, reporteHTMLTabla, file, true);
+                    } else if (esConector(token)) {
+
+                        reporteHTMLTabla.registroDeTokens(
+                                new RegistroDeTokens(token, "Reconocido", contadorDeFilas, contadorDeColumnas,
+                                        "Conector"));
+                        contadorDeColumnas = conectoresA.analizador(contadorDeColumnas, contadorDeFilas, lineaLeida,
+                                reportesError, reporteHTMLTabla, file, true);
+                    } else if (esComandoIA(token)) {
+
+                        reporteHTMLTabla.registroDeTokens(new RegistroDeTokens(token, "Reconocido", contadorDeFilas,
+                                contadorDeColumnas, "ComandoIA"));
+                        contadorDeColumnas = iaA.analizador(contadorDeColumnas, contadorDeFilas, lineaLeida,
+                                reportesError, reporteHTMLTabla, file, true);
+                    } else if (esPalabraReservada(token)) {
+
+                        reporteHTMLTabla.registroDeTokens(new RegistroDeTokens(token, "Reconocido", contadorDeFilas,
+                                contadorDeColumnas, "Palabra Reservada"));
+                        contadorDeColumnas = reservadasA.analizador(contadorDeColumnas, contadorDeFilas, lineaLeida,
+                                reportesError, reporteHTMLTabla, file, true);
+                    } else {
+                        reportesError.registrarError(new ErrorLexico(token,
+                                "Instruccion o token no reconocido en este contexto", contadorDeFilas,
                                 contadorDeColumnas));
+                        contadorDeColumnas += token.length();
                     }
                 }
+                contadorDeFilas++;
 
-                if (letra == '{' || letra == '}') {
-                    contadorDeColumnas++;
-                    continue;
-                }
-
-                // separador de palabras con caracteres especiales como -> y @
-                String token = comando.leerSiguienteToken(lineaLeida, contadorDeColumnas);
-
-                if (token.isEmpty()) {
-                    // Si no es una palabra, podría ser un operador suelto no reconocido en este
-                    // nivel
-                    reportesError.registrarError(new ErrorLexico(String.valueOf(letra),
-                            "Caracter no reconocido o fuera de contexto", contadorDeFilas, contadorDeColumnas));
-                    contadorDeColumnas++;
-                    continue;
-                }
-
-                // 4. Distribuir el token de acuerdo a su tipo y genera su reconocimiento
-                if (esDirectiva(token)) {
-
-                    reporteHTMLTabla.registroDeTokens(new RegistroDeTokens(token, "Reconocido", contadorDeFilas,
-                            contadorDeColumnas, "Directivas"));
-                    contadorDeColumnas = directivas.analizador(contadorDeColumnas, contadorDeFilas, lineaLeida,
-                            reportesError, reporteHTMLTabla, file, true);
-                } else if (esConector(token)) {
-
-                    reporteHTMLTabla.registroDeTokens(
-                            new RegistroDeTokens(token, "Reconocido", contadorDeFilas, contadorDeColumnas, "Conector"));
-                    contadorDeColumnas = conectoresA.analizador(contadorDeColumnas, contadorDeFilas, lineaLeida,
-                            reportesError, reporteHTMLTabla, file, true);
-                } else if (esComandoIA(token)) {
-
-                    reporteHTMLTabla.registroDeTokens(new RegistroDeTokens(token, "Reconocido", contadorDeFilas,
-                            contadorDeColumnas, "ComandoIA"));
-                    contadorDeColumnas = iaA.analizador(contadorDeColumnas, contadorDeFilas, lineaLeida,
-                            reportesError, reporteHTMLTabla, file, true);
-                } else if (esPalabraReservada(token)) {
-
-                    reporteHTMLTabla.registroDeTokens(new RegistroDeTokens(token, "Reconocido", contadorDeFilas,
-                            contadorDeColumnas, "Palabra Reservada"));
-                    contadorDeColumnas = reservadasA.analizador(contadorDeColumnas, contadorDeFilas, lineaLeida,
-                            reportesError, reporteHTMLTabla, file, true);
-                } else {
-                    reportesError.registrarError(new ErrorLexico(token,
-                            "Instruccion o token no reconocido en este contexto", contadorDeFilas, contadorDeColumnas));
-                    contadorDeColumnas += token.length();
-                }
             }
-            contadorDeFilas++;
+            reporteHTMLTabla.generarHTMLDeTokens(
+                    "ReportesHTML/ReporteTokens" + contadorDeAarchivosAnalizados + nombreDelArchivo + ".html");
+            reporteHTMLTabla.tablaDeTokensConsola();
+            reportesError.generarHTMLDeError(
+                    "ReportesHTML/ReporteErrores" + contadorDeAarchivosAnalizados + nombreDelArchivo + ".html");
+                    return true;
+        }else{
+            return false;
         }
-        reporteHTMLTabla.generarHTMLDeTokens("ReportesHTML/ReporteTokens" + contadorDeAarchivosAnalizados + ".html");
-        reporteHTMLTabla.tablaDeTokensConsola();
-        reportesError.generarHTMLDeError("ReportesHTML/ReporteErrores" + contadorDeAarchivosAnalizados + ".html");
     }
 
     // verificadores de tokens
@@ -199,4 +209,16 @@ public class AnailizadorDeTexto {
         return false;
     }
 
+    private boolean verificadorDeArchivoValido(String nombreDelArchivo) {
+        boolean punto = false;
+        String estencionPZ = "";
+        for (int i = 0; i < nombreDelArchivo.length(); i++) {
+            if (nombreDelArchivo.charAt(i) == '.' || punto) {
+                estencionPZ = estencionPZ + nombreDelArchivo.charAt(i);
+                punto=true;
+            }
+        }
+        return estencionPZ.equals(".pz");
+
+    }
 }

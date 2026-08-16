@@ -27,6 +27,11 @@ public class MenuDeSelecion {
         System.out.println("Desea continuar con otro archivo escriba 's' sino presione enter");
     }
 
+    public void archivoNoValido(){
+        System.out.println("archivo no valido porfavor ingrese un archivo .pz ");
+        System.out.println("Desea continuar con otro archivo escriba 's' sino presione enter");
+    }
+
     public void errorDePrograma() {
         System.out.println("No se pudo encontrar el archivo vuelva a intentar ");
     }
