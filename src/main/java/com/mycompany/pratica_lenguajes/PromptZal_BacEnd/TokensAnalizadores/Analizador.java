@@ -43,12 +43,8 @@ public abstract class Analizador {
         if (columna >= linea.length()) {
             return columna;
         }
-        // Leemos la palabra solo para calcular cuánto avanzar e identificar el índice
-        // en la tabla
-        String palabra = (linea.charAt(columna) == '@') ? comando.leerDirectivaOConector(linea, columna)
-                : (linea.charAt(columna) == '-' && columna + 1 < linea.length() && linea.charAt(columna + 1) == '>')
-                        ? "->"
-                        : comando.leerPalabra(linea, columna);
+        String palabra = comando.leerSiguienteToken(linea, columna);
+
         columna += palabra.length();
         esDirectivaValida(palabra);
         return condicion(columna, fila, linea, fileLocal);
@@ -64,12 +60,11 @@ public abstract class Analizador {
 
         char c = linea.charAt(columna);
 
-        // 1. Si es un literal entre comillas
+        // lee la palabra que esta entre comillas
         if (c == '"') {
             columna = lectorDeComillas(columna, fila, linea);
         }
-        // 2. Si es una palabra
-
+        // lee la palabra
         else if (Character.isLetterOrDigit(c) || c == '_') {
 
             String palabra = comando.leerPalabra(linea, columna);

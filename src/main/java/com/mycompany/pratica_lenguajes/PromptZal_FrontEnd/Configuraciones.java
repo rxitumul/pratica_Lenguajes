@@ -18,7 +18,9 @@ public class Configuraciones {
     public String formatear(String texto) {
         int interior = ANCHO - 2;
 
-        texto = texto.length() > interior ? texto.substring(0, interior) : texto;
+        if (texto.length() > interior) {
+            texto = texto.substring(0, interior);
+        }
 
         return "|" + String.format("%-" + interior + "s", texto) + "|";
     }

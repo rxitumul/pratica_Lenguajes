@@ -37,7 +37,7 @@ public class PalabrasReservadasDeEstructuraAnalizador extends Analizador {
         columna = comando.saltarEspacios(linea, columna);
 
         String nombreAgente = comando.leerPalabra(linea, columna);
-
+        // verifica a agente
         if (nombreAgente.isEmpty() || !Character.isLetter(nombreAgente.charAt(0))) {
             reportesError.registrarError(
                     new ErrorLexico("", "Se esperaba " + contexto + " después de AGENTE", fila, columna));
@@ -46,8 +46,8 @@ public class PalabrasReservadasDeEstructuraAnalizador extends Analizador {
 
         columna += nombreAgente.length();
         agentesDeclarados.agregarAlFinal(nombreAgente);
-
         columna = comando.saltarEspacios(linea, columna);
+        // verifica que despues del agente sigue una llave de apertura
         if (columna >= linea.length() || linea.charAt(columna) != '{') {
             String charDetectado;
             if (columna < linea.length()) {
@@ -60,14 +60,15 @@ public class PalabrasReservadasDeEstructuraAnalizador extends Analizador {
                             columna));
             return columna;
         }
-
-        columna++; // Consumir '{'
-        columna = verificadorDeCierre(columna - 1, fila, '}'); // verificar llave de cierre '}'
+        columna++;
+        // verifica cierre
+        columna = verificadorDeCierre(columna - 1, fila, '}');
         return columna;
     }
 
     private int leerPalabraContexto(int columna, int fila, String linea, String contexto) throws IOException {
         columna = comando.saltarEspacios(linea, columna);
+        // verificar signo de igual
         if (columna >= linea.length() || linea.charAt(columna) != '=') {
             String charDetectado;
             if (columna < linea.length()) {
@@ -80,9 +81,9 @@ public class PalabrasReservadasDeEstructuraAnalizador extends Analizador {
             return columna;
         }
 
-        columna++; // Consumir '='
+        columna++;
         columna = comando.saltarEspacios(linea, columna);
-
+        // verificar comillas
         return lectorDeComillas(columna, fila, linea);
     }
 
@@ -90,7 +91,7 @@ public class PalabrasReservadasDeEstructuraAnalizador extends Analizador {
             throws IOException {
         columna = comando.saltarEspacios(linea, columna);
         String nombreVar = comando.leerPalabra(linea, columna);
-
+        // verificar nombre de variable
         if (nombreVar.isEmpty() || !Character.isLetter(nombreVar.charAt(0))) {
             reportesError.registrarError(
                     new ErrorLexico(nombreVar, "Se esperaba " + contexto + " después de 'variable'", fila, columna));
@@ -98,9 +99,10 @@ public class PalabrasReservadasDeEstructuraAnalizador extends Analizador {
         }
 
         columna += nombreVar.length();
+        // agrega la variable a las variables declaradas
         variablesDeclaradas.agregarAlFinal(nombreVar);
-
         columna = comando.saltarEspacios(linea, columna);
+        // verifica signo de igual
         if (columna >= linea.length() || linea.charAt(columna) != '=') {
             String charDetectado;
             if (columna < linea.length()) {
@@ -113,11 +115,12 @@ public class PalabrasReservadasDeEstructuraAnalizador extends Analizador {
             return columna;
         }
 
-        columna++; // Consumir '='
+        columna++;
         columna = comando.saltarEspacios(linea, columna);
 
         int inicioValor = columna;
-        columna = movedorDeColumnasHastaFinDeEsprecion(linea, columna,fila);
+        // mueve la columna hasta el fin de la expresion
+        columna = movedorDeColumnasHastaFinDeEsprecion(linea, columna, fila);
         if (columna == inicioValor) {
             reportesError.registrarError(
                     new ErrorLexico("", "Se esperaba una expresión de valor para la variable", fila, columna));
@@ -128,7 +131,6 @@ public class PalabrasReservadasDeEstructuraAnalizador extends Analizador {
     private int leerPalabraEjecucion(int columna, int fila, String linea, String contexto) throws IOException {
         columna = comando.saltarEspacios(linea, columna);
         String agenteAEjecutar = comando.leerPalabra(linea, columna);
-
         if (agenteAEjecutar.isEmpty()) {
             reportesError.registrarError(
                     new ErrorLexico("", "Se esperaba el nombre de un agente a ejecutar", fila, columna));
@@ -136,6 +138,7 @@ public class PalabrasReservadasDeEstructuraAnalizador extends Analizador {
         }
 
         columna += agenteAEjecutar.length();
+        // verificar que exista un agente
         if (!agentesDeclarados.contiene(agenteAEjecutar)) {
             reportesError.registrarError(
                     new ErrorLexico(agenteAEjecutar, "El agente '" + agenteAEjecutar + "' no ha sido declarado", fila,
@@ -146,6 +149,7 @@ public class PalabrasReservadasDeEstructuraAnalizador extends Analizador {
 
     private int leerPalabraExportacion(int columna, int fila, String linea, String contexto) throws IOException {
         columna = comando.saltarEspacios(linea, columna);
+
         while (columna < linea.length()) {
             columna = comando.saltarEspacios(linea, columna);
             if (columna >= linea.length()) {
@@ -169,11 +173,14 @@ public class PalabrasReservadasDeEstructuraAnalizador extends Analizador {
                     continue;
                 }
             } else {
+                // verificar nombre de variable
                 if (!Character.isLetter(token.charAt(0))) {
                     reportesError.registrarError(
                             new ErrorLexico(token, "Se esperaba un nombre de variable valido para exportar", fila,
                                     columna));
-                } else if (!variablesDeclaradas.contiene(token)) {
+                }
+                // verificar que exista la variable
+                else if (!variablesDeclaradas.contiene(token)) {
                     reportesError.registrarError(
                             new ErrorLexico(token, "La variable '" + token + "' no ha sido declarada", fila, columna));
                 }
@@ -182,7 +189,7 @@ public class PalabrasReservadasDeEstructuraAnalizador extends Analizador {
 
             columna = comando.saltarEspacios(linea, columna);
             if (columna < linea.length() && linea.charAt(columna) == ',') {
-                columna++; // Consumir la coma
+                columna++;
             }
         }
         return columna;

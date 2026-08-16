@@ -10,15 +10,13 @@ public class ComandosDeIaAnalizador extends Analizador {
     @Override
     protected int condicion(int contadorDeColumnas, int contadorDeFilas, String lineaLeida, File archivo)
             throws IOException {
-        // Saltamos el espacio entre el comando y su argumento
         contadorDeColumnas = comando.saltarEspacios(lineaLeida, contadorDeColumnas);
 
         int posicionAntes = contadorDeColumnas;
 
         // Consumimos la expresión completa que sigue al comando
-        contadorDeColumnas = movedorDeColumnasHastaFinDeEsprecion(lineaLeida, contadorDeColumnas,contadorDeFilas);
+        contadorDeColumnas = movedorDeColumnasHastaFinDeEsprecion(lineaLeida, contadorDeColumnas, contadorDeFilas);
 
-        // Si no avanzamos nada es porque no había argumento → error
         if (contadorDeColumnas == posicionAntes) {
             error = new ErrorLexico("", "Se esperaba un argumento despues del comando de IA",
                     contadorDeFilas, contadorDeColumnas);
@@ -28,7 +26,6 @@ public class ComandosDeIaAnalizador extends Analizador {
         return contadorDeColumnas;
     }
 
-    // Los comandos de IA válidos están definidos en BibliotecaDeTokens
     @Override
     protected String[] token() {
         return tokens.getCOMANDOS_DE_IA();

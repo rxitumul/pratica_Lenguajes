@@ -1,7 +1,7 @@
 package com.mycompany.pratica_lenguajes.PromptZal_BacEnd.TokensAnalizadores;
 
 public class ComandosMultimedia {
-    
+
     // Recorre Caracter por Caracter saltando los espacios en blanco
     public int saltarEspacios(String linea, int columna) {
         while (columna < linea.length() && (linea.charAt(columna) == ' ' || linea.charAt(columna) == '\t')) {
@@ -35,6 +35,20 @@ public class ComandosMultimedia {
             }
         }
         return linea.substring(inicio, columna);
+    }
+
+    // Lee el siguiente token
+    public String leerSiguienteToken(String linea, int columna) {
+        if (columna >= linea.length()) {
+            return "";
+        }
+        char c = linea.charAt(columna);
+        if (c == '@') {
+            return leerDirectivaOConector(linea, columna);
+        } else if (c == '-' && columna + 1 < linea.length() && linea.charAt(columna + 1) == '>') {
+            return "->";
+        }
+        return leerPalabra(linea, columna);
     }
 
 }

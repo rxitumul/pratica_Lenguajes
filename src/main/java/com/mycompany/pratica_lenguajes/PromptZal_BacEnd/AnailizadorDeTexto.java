@@ -117,17 +117,7 @@ public class AnailizadorDeTexto {
                 }
 
                 // separador de palabras con caracteres especiales como -> y @
-                String token = "";
-                if (letra == '@' || (letra == '-' && contadorDeColumnas + 1 < lineaLeida.length()
-                        && lineaLeida.charAt(contadorDeColumnas + 1) == '>')) {
-                    if (letra == '@') {
-                        token = comando.leerDirectivaOConector(lineaLeida, contadorDeColumnas);
-                    } else {
-                        token = "->";
-                    }
-                } else {
-                    token = comando.leerPalabra(lineaLeida, contadorDeColumnas);
-                }
+                String token = comando.leerSiguienteToken(lineaLeida, contadorDeColumnas);
 
                 if (token.isEmpty()) {
                     // Si no es una palabra, podría ser un operador suelto no reconocido en este
