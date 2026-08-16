@@ -10,7 +10,7 @@ public class ConectoresAnalizador extends Analizador {
     protected int condicion(int columna, int fila, String linea, File file) throws IOException {
         columna = comando.saltarEspacios(linea, columna);
         int inicio = columna;
-        columna = movedorDeColumnasHastaFinDeEsprecion(linea, columna,fila);
+        columna = movedorDeColumnasHastaFinDeEsprecion(linea, columna, fila);
         if (columna == inicio) {
             error = new ErrorLexico("", "Se esperaba un complemento después del conector", fila, columna);
             reportesError.registrarError(error);
@@ -18,9 +18,11 @@ public class ConectoresAnalizador extends Analizador {
         }
 
         // Si el conector es "->", registramos la variable asignada
-        if (contadorDeIndices == 4) { // "->" está en el índice 4 de BibliotecaDeTokens.getCONECTORES()
+        if (contadorDeIndices == 4) {
             String varName = linea.substring(inicio, columna).trim();
+            // verificar nombre de variable
             if (!varName.isEmpty() && Character.isLetter(varName.charAt(0))) {
+                // verificar que exista la variable
                 variablesDeclaradas.agregarAlFinal(varName);
             }
         }

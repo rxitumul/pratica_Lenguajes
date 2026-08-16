@@ -70,8 +70,7 @@ public abstract class Analizador {
             String palabra = comando.leerPalabra(linea, columna);
             columna += palabra.length();
 
-            // Verificamos si es una función
-
+            // Verifica si es una función / una funcion que lleva un dato entre parentesis
             int columnaTemp = comando.saltarEspacios(linea, columna);
             if (columnaTemp < linea.length() && linea.charAt(columnaTemp) == '(') {
 
@@ -94,7 +93,7 @@ public abstract class Analizador {
         } else {
             columna++;
         }
-
+        // lee la siguiente palabra
         int columnaSig = comando.saltarEspacios(linea, columna);
         if (columnaSig < linea.length()) {
             char sigC = linea.charAt(columnaSig);
@@ -107,11 +106,11 @@ public abstract class Analizador {
             }
         }
 
-        // Verificamos si hay concatenación/suma con '+'
+        // verifica la concatenacion con '+'
         int columnaMas = comando.saltarEspacios(linea, columna);
         if (columnaMas < linea.length() && linea.charAt(columnaMas) == '+') {
             reporteHTMLTabla.registroDeTokens(new RegistroDeTokens("+", "Reconocido", fila, columna, "operadores"));
-            columna = columnaMas + 1; // Consumimos el '+'
+            columna = columnaMas + 1;
             columna = movedorDeColumnasHastaFinDeEsprecion(linea, columna, fila);
         }
 
