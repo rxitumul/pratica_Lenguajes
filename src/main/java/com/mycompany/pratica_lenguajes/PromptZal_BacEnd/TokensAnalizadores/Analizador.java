@@ -45,8 +45,8 @@ public abstract class Analizador {
         }
         String palabra = comando.leerSiguienteToken(linea, columna);
 
-        columna += palabra.length();
-        esDirectivaValida(palabra);
+        columna = columna + palabra.length();
+        buscarIndiceDeToken(palabra);
         return condicion(columna, fila, linea, fileLocal);
     }
 
@@ -68,7 +68,7 @@ public abstract class Analizador {
         else if (Character.isLetterOrDigit(c) || c == '_') {
 
             String palabra = comando.leerPalabra(linea, columna);
-            columna += palabra.length();
+            columna = columna + palabra.length();
 
             // Verifica si es una función / una funcion que lleva un dato entre parentesis
             int columnaTemp = comando.saltarEspacios(linea, columna);
@@ -205,21 +205,20 @@ public abstract class Analizador {
             if (columna < linea.length()) {
                 columna++; // Incluir la comilla de cierre
             }
-            return linea.substring(inicio, columna);
+            return comando.extraerSubcadena(linea, inicio, columna);
         }
         return "";
     }
 
-    private boolean esDirectivaValida(String palabra) {
+    private void buscarIndiceDeToken(String palabra) {
         contadorDeIndices = 0;
         String[] palabrasDirectivas = token();
         for (String d : palabrasDirectivas) {
             if (d.equals(palabra)) {
-                return true;
+                return;
             }
             contadorDeIndices++;
         }
-        return false;
     }
 
     protected abstract String[] token();

@@ -51,7 +51,7 @@ public class PalabrasReservadasDeEstructuraAnalizador extends Analizador {
             return columna;
         }
 
-        columna += nombreAgente.length();
+        columna = columna + nombreAgente.length();
         agentesDeclarados.agregarAlFinal(nombreAgente);
         columna = comando.saltarEspacios(linea, columna);
         // verifica que despues del agente sigue una llave de apertura
@@ -112,7 +112,7 @@ public class PalabrasReservadasDeEstructuraAnalizador extends Analizador {
             return columna;
         }
 
-        columna += nombreVar.length();
+        columna = columna + nombreVar.length();
         // agrega la variable a las variables declaradas
         variablesDeclaradas.agregarAlFinal(nombreVar);
         columna = comando.saltarEspacios(linea, columna);
@@ -153,7 +153,7 @@ public class PalabrasReservadasDeEstructuraAnalizador extends Analizador {
             return columna;
         }
 
-        columna += agenteAEjecutar.length();
+        columna = columna + agenteAEjecutar.length();
         // verificar que exista un agente
         if (!agentesDeclarados.contiene(agenteAEjecutar)) {
             reportesError.registrarError(
@@ -183,7 +183,7 @@ public class PalabrasReservadasDeEstructuraAnalizador extends Analizador {
                 char ch = linea.charAt(columna);
                 if (ch != ',') {
                     reportesError.registrarError(
-                            new ErrorLexico(String.valueOf(ch), "Se esperaba un nombre de variable para exportar", fila,
+                            new ErrorLexico("unn", "Se esperaba un nombre de variable para exportar", fila,
                                     columna));
                     columna++;
                     continue;
@@ -200,7 +200,7 @@ public class PalabrasReservadasDeEstructuraAnalizador extends Analizador {
                     reportesError.registrarError(
                             new ErrorLexico(token, "La variable '" + token + "' no ha sido declarada", fila, columna));
                 }
-                columna += token.length();
+                columna = columna + token.length();
             }
 
             columna = comando.saltarEspacios(linea, columna);

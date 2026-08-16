@@ -10,6 +10,19 @@ public class ComandosMultimedia {
         return columna;
     }
 
+    // Extrae una subcadena de forma segura
+    public String extraerSubcadena(String linea, int inicio, int fin) {
+        if (linea == null || inicio < 0 || fin > linea.length() || inicio >= fin) {
+            return "";
+        }
+        return linea.substring(inicio, fin);
+    }
+
+    // Extrae y elimina espacios al inicio y final (trim)
+    public String extraerTextoLimpio(String linea, int inicio, int fin) {
+        return extraerSubcadena(linea, inicio, fin).trim();
+    }
+
     // Lee un identificador, número o comando Caracter por Caracter
     public String leerPalabra(String linea, int columna) {
         int inicio = columna;
@@ -21,7 +34,7 @@ public class ComandosMultimedia {
                 break;
             }
         }
-        return linea.substring(inicio, columna);
+        return extraerSubcadena(linea, inicio, columna);
     }
 
     // Lee una directiva que inicia con @ o el conector -> Caracter por Caracter
@@ -34,7 +47,7 @@ public class ComandosMultimedia {
                 columna++;
             }
         }
-        return linea.substring(inicio, columna);
+        return extraerSubcadena(linea, inicio, columna);
     }
 
     // Lee el siguiente token

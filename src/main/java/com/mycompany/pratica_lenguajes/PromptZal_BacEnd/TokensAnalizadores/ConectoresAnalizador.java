@@ -20,7 +20,7 @@ public class ConectoresAnalizador extends Analizador {
 
         // Si el conector es "->", registramos la variable asignada
         if (contadorDeIndices == 4) {
-            String varName = linea.substring(inicio, columna).trim();
+            String varName = comando.extraerTextoLimpio(linea, inicio, columna);
             // verificar nombre de variable
             if (!varName.isEmpty() && Character.isLetter(varName.charAt(0))) {
                 // verificar que exista la variable

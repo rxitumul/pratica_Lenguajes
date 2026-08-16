@@ -59,7 +59,7 @@ public class AnailizadorDeTexto {
                             && lineaLeida.charAt(contadorDeColumnas + 1) == '/') {
                         reporteHTMLTabla.registroDeTokens(new RegistroDeTokens("//", "Reconocido", contadorDeFilas,
                                 contadorDeColumnas, "Comentarios"));
-                        break; // Ignorar el resto de la línea
+                        break;
                     }
 
                     if (letra == '/' && contadorDeColumnas + 1 < lineaLeida.length()
@@ -159,7 +159,7 @@ public class AnailizadorDeTexto {
                         reportesError.registrarError(new ErrorLexico(token,
                                 "Instruccion o token no reconocido en este contexto", contadorDeFilas,
                                 contadorDeColumnas));
-                        contadorDeColumnas += token.length();
+                        contadorDeColumnas = contadorDeColumnas + token.length();
                     }
                 }
                 contadorDeFilas++;
