@@ -123,14 +123,13 @@ public class AnailizadorDeTexto {
 
                     if (token.isEmpty()) {
                         // Si no es una palabra, podría ser un operador suelto no reconocido en este
-                        // nivel
                         reportesError.registrarError(new ErrorLexico(String.valueOf(letra),
                                 "Caracter no reconocido o fuera de contexto", contadorDeFilas, contadorDeColumnas));
                         contadorDeColumnas++;
                         continue;
                     }
 
-                    // 4. Distribuir el token de acuerdo a su tipo y genera su reconocimiento
+                    // Distribuir el token de acuerdo a su tipo y genera su reconocimiento
                     if (esDirectiva(token)) {
 
                         reporteHTMLTabla.registroDeTokens(new RegistroDeTokens(token, "Reconocido", contadorDeFilas,
@@ -172,7 +171,7 @@ public class AnailizadorDeTexto {
             reportesError.generarHTMLDeError(
                     "ReportesHTML/ReporteErrores" + contadorDeAarchivosAnalizados + nombreDelArchivo + ".html");
             return true;
-        } // cierre try-with-resources → lectorPrincipal se cierra aquí automáticamente
+        } 
     }
 
     // verificadores de tokens
