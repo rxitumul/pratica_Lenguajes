@@ -31,8 +31,6 @@ public class MenuPrincipal {
             } catch (IOException e) {
                 MenuDeSelecion front = new MenuDeSelecion();
                 front.errorDePrograma();
-            } finally {
-
             }
         }
 

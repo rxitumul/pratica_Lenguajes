@@ -15,7 +15,6 @@ import com.mycompany.pratica_lenguajes.PromptZal_BacEnd.TokensAnalizadores.Palab
 import com.mycompany.pratica_lenguajes.PromptZal_BacEnd.TokensRegistrados.RegistroDeTokens;
 
 public class AnailizadorDeTexto {
-    private BufferedReader lector;
     private BibliotecaDeTokens tokens = new BibliotecaDeTokens();
     private DirectivasAnalaizador directivas = new DirectivasAnalaizador();
     private PalabrasReservadasDeEstructuraAnalizador reservadasA = new PalabrasReservadasDeEstructuraAnalizador();
@@ -24,21 +23,23 @@ public class AnailizadorDeTexto {
     private ReporteDeError reportesError = new ReporteDeError();
     private ReporteHTMLTabla reporteHTMLTabla = new ReporteHTMLTabla();
     private ComandosMultimedia comando = new ComandosMultimedia();
-    private File file;
-    private File file2;
 
     public boolean lector(String paht, int contadorDeAarchivosAnalizados) throws IOException {
         Analizador.limpiarDeclaraciones();
-        int contadorDeFilas = 1;
-        file = new File(paht);
+        File file = new File(paht);
         String nombreDelArchivo = file.getName();
-        lector = new BufferedReader(new FileReader(file));
-        String lineaLeida;
-        int contadorDeCierreFila = 0;
-        if (verificadorDeArchivoValido(nombreDelArchivo)) {
 
-            while ((lineaLeida = lector.readLine()) != null) {
+        if (!verificadorDeArchivoValido(nombreDelArchivo)) {
+            return false;
+        }
 
+        try (BufferedReader lectorPrincipal = new BufferedReader(new FileReader(file))) {
+            File file2;
+            int contadorDeFilas = 1;
+            String lineaLeida;
+            int contadorDeCierreFila = 0;
+
+            while ((lineaLeida = lectorPrincipal.readLine()) != null) {
                 // cambio de linea
                 int contadorDeColumnas = 0;
                 while (contadorDeColumnas < lineaLeida.length() && contadorDeCierreFila < contadorDeFilas) {
@@ -170,10 +171,8 @@ public class AnailizadorDeTexto {
             reporteHTMLTabla.tablaDeTokensConsola();
             reportesError.generarHTMLDeError(
                     "ReportesHTML/ReporteErrores" + contadorDeAarchivosAnalizados + nombreDelArchivo + ".html");
-                    return true;
-        }else{
-            return false;
-        }
+            return true;
+        } // cierre try-with-resources → lectorPrincipal se cierra aquí automáticamente
     }
 
     // verificadores de tokens
@@ -215,7 +214,7 @@ public class AnailizadorDeTexto {
         for (int i = 0; i < nombreDelArchivo.length(); i++) {
             if (nombreDelArchivo.charAt(i) == '.' || punto) {
                 estencionPZ = estencionPZ + nombreDelArchivo.charAt(i);
-                punto=true;
+                punto = true;
             }
         }
         return estencionPZ.equals(".pz");
