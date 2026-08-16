@@ -18,7 +18,7 @@ public class ComandosDeIaAnalizador extends Analizador {
         contadorDeColumnas = movedorDeColumnasHastaFinDeEsprecion(lineaLeida, contadorDeColumnas, contadorDeFilas);
 
         if (contadorDeColumnas == posicionAntes) {
-            error = new ErrorLexico("", "Se esperaba un argumento despues del comando de IA",
+            error = new ErrorLexico("Fin de linea", "Se esperaba un argumento despues del comando de IA revisa",
                     contadorDeFilas, contadorDeColumnas);
             reportesError.registrarError(error);
         }

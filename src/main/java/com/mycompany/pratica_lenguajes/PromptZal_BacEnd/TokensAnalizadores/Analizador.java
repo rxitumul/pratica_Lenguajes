@@ -170,7 +170,8 @@ public abstract class Analizador {
                 }
             }
             reportesError.registrarError(
-                    new ErrorLexico("", "Se esperaba " + analizarCierreDe + " después de abrir un bloque",
+                    new ErrorLexico("Fin de linea",
+                            "Se esperaba " + analizarCierreDe + " después de abrir un bloque revisa",
                             fila, columna));
             return columna;
         }
@@ -184,7 +185,11 @@ public abstract class Analizador {
                     new RegistroDeTokens("\"...\"", "Reconocido", fila, columna, "Literales"));
             return columna + texto.length();
         } else {
-            error = new ErrorLexico("\"...\"", "Falta el cierre de comillas en la directiva", fila, columna);
+            if (texto.isEmpty()) {
+                error = new ErrorLexico("\"", "Falta el cierre de comillas en la directiva revisa", fila, columna);
+            } else {
+                error = new ErrorLexico(texto, "Falta el cierre de comillas en la directiva revisa", fila, columna);
+            }
             reportesError.registrarError(error);
             return columna + texto.length();
         }

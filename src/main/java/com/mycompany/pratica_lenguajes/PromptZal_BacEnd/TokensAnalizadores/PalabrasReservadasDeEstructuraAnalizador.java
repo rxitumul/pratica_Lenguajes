@@ -39,8 +39,15 @@ public class PalabrasReservadasDeEstructuraAnalizador extends Analizador {
         String nombreAgente = comando.leerPalabra(linea, columna);
         // verifica a agente
         if (nombreAgente.isEmpty() || !Character.isLetter(nombreAgente.charAt(0))) {
-            reportesError.registrarError(
-                    new ErrorLexico("", "Se esperaba " + contexto + " después de AGENTE", fila, columna));
+            if (nombreAgente.isEmpty()) {
+                reportesError.registrarError(
+                        new ErrorLexico("Fin de linea", "Se esperaba " + contexto + " después de AGENTE revisa", fila,
+                                columna));
+            } else {
+                reportesError.registrarError(
+                        new ErrorLexico(nombreAgente, "Se esperaba " + contexto + " después de AGENTE revisa", fila,
+                                columna));
+            }
             return columna;
         }
 
@@ -53,7 +60,7 @@ public class PalabrasReservadasDeEstructuraAnalizador extends Analizador {
             if (columna < linea.length()) {
                 charDetectado = String.valueOf(linea.charAt(columna));
             } else {
-                charDetectado = "EOF";
+                charDetectado = "Fin de linea";
             }
             reportesError.registrarError(
                     new ErrorLexico(charDetectado, "Se esperaba '{' después del identificador de agente", fila,
@@ -74,10 +81,10 @@ public class PalabrasReservadasDeEstructuraAnalizador extends Analizador {
             if (columna < linea.length()) {
                 charDetectado = String.valueOf(linea.charAt(columna));
             } else {
-                charDetectado = "EOF";
+                charDetectado = "Fin de linea";
             }
             reportesError.registrarError(
-                    new ErrorLexico(charDetectado, "Se esperaba '=' después de 'contexto'", fila, columna));
+                    new ErrorLexico(charDetectado, "Se esperaba '=' después de 'contexto' revisa", fila, columna));
             return columna;
         }
 
@@ -93,8 +100,15 @@ public class PalabrasReservadasDeEstructuraAnalizador extends Analizador {
         String nombreVar = comando.leerPalabra(linea, columna);
         // verificar nombre de variable
         if (nombreVar.isEmpty() || !Character.isLetter(nombreVar.charAt(0))) {
-            reportesError.registrarError(
-                    new ErrorLexico(nombreVar, "Se esperaba " + contexto + " después de 'variable'", fila, columna));
+            if (nombreVar.isEmpty()) {
+                reportesError.registrarError(
+                        new ErrorLexico("Fin de linea", "Se esperaba " + contexto + " después de 'variable' revisa",
+                                fila, columna));
+            } else {
+                reportesError.registrarError(
+                        new ErrorLexico(nombreVar, "Se esperaba " + contexto + " después de 'variable' revisa", fila,
+                                columna));
+            }
             return columna;
         }
 
@@ -108,10 +122,11 @@ public class PalabrasReservadasDeEstructuraAnalizador extends Analizador {
             if (columna < linea.length()) {
                 charDetectado = String.valueOf(linea.charAt(columna));
             } else {
-                charDetectado = "EOF";
+                charDetectado = "Fin de linea";
             }
             reportesError.registrarError(
-                    new ErrorLexico(charDetectado, "Se esperaba '=' después del nombre de la variable", fila, columna));
+                    new ErrorLexico(charDetectado, "Se esperaba '=' después del nombre de la variable revisa", fila,
+                            columna));
             return columna;
         }
 
@@ -123,7 +138,8 @@ public class PalabrasReservadasDeEstructuraAnalizador extends Analizador {
         columna = movedorDeColumnasHastaFinDeEsprecion(linea, columna, fila);
         if (columna == inicioValor) {
             reportesError.registrarError(
-                    new ErrorLexico("", "Se esperaba una expresión de valor para la variable", fila, columna));
+                    new ErrorLexico("Fin de linea", "Se esperaba una expresión de valor para la variable revisa", fila,
+                            columna));
         }
         return columna;
     }
@@ -133,7 +149,7 @@ public class PalabrasReservadasDeEstructuraAnalizador extends Analizador {
         String agenteAEjecutar = comando.leerPalabra(linea, columna);
         if (agenteAEjecutar.isEmpty()) {
             reportesError.registrarError(
-                    new ErrorLexico("", "Se esperaba el nombre de un agente a ejecutar", fila, columna));
+                    new ErrorLexico("Fin de linea", "Se esperaba el nombre de un agente a ejecutar", fila, columna));
             return columna;
         }
 

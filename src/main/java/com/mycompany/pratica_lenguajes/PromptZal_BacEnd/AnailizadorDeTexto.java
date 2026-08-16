@@ -107,8 +107,8 @@ public class AnailizadorDeTexto {
                             }
 
                         } catch (Exception e) {
-                            reportesError.registrarError(new ErrorLexico(" /*..*/",
-                                    "se espera que se ciere el bloque", contadorDeFilas,
+                            reportesError.registrarError(new ErrorLexico("/*..*/",
+                                    "se espera que se ciere el bloque porfavor", contadorDeFilas,
                                     contadorDeColumnas));
                         }
                     }
@@ -171,7 +171,7 @@ public class AnailizadorDeTexto {
             reportesError.generarHTMLDeError(
                     "ReportesHTML/ReporteErrores" + contadorDeAarchivosAnalizados + nombreDelArchivo + ".html");
             return true;
-        } 
+        }
     }
 
     // verificadores de tokens

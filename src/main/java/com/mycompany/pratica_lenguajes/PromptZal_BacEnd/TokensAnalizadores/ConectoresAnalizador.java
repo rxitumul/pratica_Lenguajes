@@ -12,7 +12,8 @@ public class ConectoresAnalizador extends Analizador {
         int inicio = columna;
         columna = movedorDeColumnasHastaFinDeEsprecion(linea, columna, fila);
         if (columna == inicio) {
-            error = new ErrorLexico("", "Se esperaba un complemento después del conector", fila, columna);
+            error = new ErrorLexico("Fin de linea", "Se esperaba un complemento después del conector revisa", fila,
+                    columna);
             reportesError.registrarError(error);
             return columna;
         }
